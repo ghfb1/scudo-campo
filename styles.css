@@ -1,0 +1,907 @@
+/*
+ * Scudo Campo — foglio di stile unico.
+ *
+ * Progettato per un telefono tenuto in una mano, dentro una cabina, spesso con
+ * i guanti: bersagli da 44px minimo, contrasto alto, niente hover come unico
+ * segnale, e la barra delle sezioni in basso dove arriva il pollice.
+ * Le aree sicure (`env(safe-area-inset-*)`) servono ai telefoni con il notch.
+ */
+
+:root {
+  --rosso: #b91c1c;
+  --rosso-scuro: #7f1d1d;
+  --rosso-chiaro: #fee2e2;
+  --ambra: #b45309;
+  --ambra-chiaro: #fef3c7;
+  --verde: #15803d;
+  --verde-chiaro: #dcfce7;
+  --blu: #1d4ed8;
+  --blu-chiaro: #dbeafe;
+  --grigio-900: #111827;
+  --grigio-700: #374151;
+  --grigio-500: #6b7280;
+  --grigio-300: #d1d5db;
+  --grigio-200: #e5e7eb;
+  --grigio-100: #f3f4f6;
+  --grigio-50: #f9fafb;
+  --bianco: #fff;
+
+  --sfondo: var(--grigio-100);
+  --superficie: var(--bianco);
+  --testo: var(--grigio-900);
+  --testo-tenue: var(--grigio-500);
+  --bordo: var(--grigio-300);
+
+  --raggio: 12px;
+  --ombra: 0 1px 3px rgb(0 0 0 / 12%), 0 1px 2px rgb(0 0 0 / 6%);
+  --ombra-alta: 0 12px 32px rgb(0 0 0 / 22%);
+  --altezza-topbar: 92px;
+  --altezza-tabbar: calc(58px + env(safe-area-inset-bottom, 0px));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sfondo: #0b0f16;
+    --superficie: #151b25;
+    --testo: #eef2f7;
+    --testo-tenue: #9aa6b6;
+    --bordo: #2b3543;
+    --grigio-50: #1b2230;
+    --grigio-100: #131923;
+    --grigio-200: #232c39;
+    --rosso-chiaro: #3b1414;
+    --ambra-chiaro: #3a2a08;
+    --verde-chiaro: #0e2f1c;
+    --blu-chiaro: #12224a;
+    --ombra: 0 1px 3px rgb(0 0 0 / 50%);
+  }
+}
+
+* { box-sizing: border-box; }
+
+/*
+ * `[hidden]` è display:none solo nel foglio dell'user agent, che ha priorità
+ * più bassa di qualunque regola d'autore: senza questa riga, `.sheet { display:
+ * flex }` mostra il foglio modale anche quando è marcato hidden, e all'avvio la
+ * pagina risulta coperta da un pannello vuoto. Vale per ogni elemento con
+ * `display` esplicito, quindi la regola sta qui in cima e non caso per caso.
+ */
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;           /* mai sotto: iOS ingrandisce la pagina se un input è < 16px */
+  line-height: 1.45;
+  color: var(--testo);
+  background: var(--sfondo);
+  padding-bottom: var(--altezza-tabbar);
+  overscroll-behavior-y: contain;
+}
+
+/* ---------------------------------------------------------------- topbar -- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: linear-gradient(180deg, var(--rosso), var(--rosso-scuro));
+  color: #fff;
+  padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 0;
+  box-shadow: var(--ombra);
+}
+
+.topbar-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 40px;
+}
+
+.brand { display: flex; align-items: center; gap: 8px; font-size: 1.05rem; letter-spacing: .2px; }
+.brand-mark { font-size: 1.25rem; }
+.brand-text b { font-weight: 700; }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 11px; border-radius: 999px;
+  background: rgb(255 255 255 / 18%); color: #fff;
+  font-size: .82rem; font-weight: 600; border: 0;
+  max-width: 55vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.chip-btn { cursor: pointer; min-height: 34px; }
+
+.statusbar {
+  display: flex; gap: 6px; flex-wrap: wrap;
+  padding: 6px 0 8px; font-size: .74rem;
+}
+.statusbar:empty { padding: 0 0 8px; }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px; border-radius: 999px;
+  background: rgb(255 255 255 / 16%); color: #fff; font-weight: 600;
+}
+.pill-ok      { background: rgb(34 197 94 / 30%); }
+.pill-attesa  { background: rgb(250 204 21 / 32%); color: #fff; }
+.pill-allarme { background: rgb(0 0 0 / 35%); color: #fff; }
+
+/* ----------------------------------------------------------------- vista -- */
+.vista { padding: 12px 12px 20px; max-width: 900px; margin: 0 auto; outline: none; }
+
+h1 { font-size: 1.25rem; margin: 4px 0 12px; }
+h2 { font-size: 1.05rem; margin: 20px 0 8px; }
+h3 { font-size: .95rem; margin: 14px 0 6px; }
+
+.card {
+  background: var(--superficie);
+  border: 1px solid var(--bordo);
+  border-radius: var(--raggio);
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: var(--ombra);
+}
+.card > :first-child { margin-top: 0; }
+.card > :last-child { margin-bottom: 0; }
+
+.griglia-kpi { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
+@media (min-width: 560px) { .griglia-kpi { grid-template-columns: repeat(4, 1fr); } }
+
+.kpi {
+  background: var(--superficie); border: 1px solid var(--bordo);
+  border-radius: var(--raggio); padding: 12px; text-align: center;
+  box-shadow: var(--ombra);
+}
+.kpi-valore { font-size: 1.7rem; font-weight: 700; line-height: 1.1; }
+.kpi-etichetta { font-size: .74rem; color: var(--testo-tenue); text-transform: uppercase; letter-spacing: .4px; }
+.kpi.rosso .kpi-valore { color: var(--rosso); }
+.kpi.ambra .kpi-valore { color: var(--ambra); }
+.kpi.verde .kpi-valore { color: var(--verde); }
+
+/* ------------------------------------------------------------- controlli -- */
+.riga { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.riga-fine { justify-content: flex-end; }
+
+button, input, select, textarea {
+  font: inherit; color: inherit;
+}
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 46px; padding: 10px 16px;
+  border-radius: 10px; border: 1px solid var(--bordo);
+  background: var(--superficie); color: var(--testo);
+  font-weight: 600; cursor: pointer;
+  touch-action: manipulation;
+}
+.btn:active { transform: translateY(1px); }
+.btn-primario { background: var(--rosso); border-color: var(--rosso); color: #fff; }
+.btn-ok { background: var(--verde); border-color: var(--verde); color: #fff; }
+.btn-ko { background: var(--ambra); border-color: var(--ambra); color: #fff; }
+.btn-blocco { width: 100%; }
+.btn-piccolo { min-height: 38px; padding: 6px 12px; font-size: .85rem; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.icon-btn {
+  border: 0; background: transparent; font-size: 1.25rem;
+  width: 44px; height: 44px; border-radius: 999px; cursor: pointer;
+}
+
+label { display: block; font-size: .8rem; font-weight: 600; color: var(--testo-tenue); margin: 10px 0 4px; }
+
+input[type="text"], input[type="search"], input[type="number"], input[type="date"],
+select, textarea {
+  width: 100%; min-height: 46px; padding: 10px 12px;
+  border: 1px solid var(--bordo); border-radius: 10px;
+  background: var(--superficie);
+}
+textarea { min-height: 84px; resize: vertical; }
+
+.campi { display: grid; gap: 0; }
+@media (min-width: 560px) { .campi-2 { grid-template-columns: 1fr 1fr; gap: 0 12px; } }
+
+.cerca-wrap { position: sticky; top: var(--altezza-topbar); z-index: 20; background: var(--sfondo); padding: 8px 0; margin: -8px 0 8px; }
+.cerca-riga { display: flex; gap: 8px; }
+.cerca-riga input { flex: 1; }
+
+.filtri { display: flex; gap: 6px; overflow-x: auto; padding: 8px 0 2px; -webkit-overflow-scrolling: touch; }
+.filtro {
+  flex: 0 0 auto; padding: 7px 13px; border-radius: 999px;
+  border: 1px solid var(--bordo); background: var(--superficie);
+  font-size: .82rem; font-weight: 600; cursor: pointer; white-space: nowrap; min-height: 38px;
+}
+.filtro[aria-pressed="true"] { background: var(--rosso); border-color: var(--rosso); color: #fff; }
+
+/* ------------------------------------------------------------- elenchi --- */
+.elenco { list-style: none; margin: 0; padding: 0; }
+
+.voce {
+  display: flex; gap: 10px; align-items: flex-start;
+  width: 100%; text-align: left;
+  background: var(--superficie); border: 1px solid var(--bordo);
+  border-radius: var(--raggio); padding: 12px; margin-bottom: 8px;
+  cursor: pointer; box-shadow: var(--ombra);
+}
+.voce-ico { font-size: 1.4rem; line-height: 1.2; flex: 0 0 auto; }
+.voce-corpo { flex: 1; min-width: 0; }
+.voce-titolo { font-weight: 700; font-size: .95rem; overflow-wrap: anywhere; }
+.voce-sotto { font-size: .82rem; color: var(--testo-tenue); overflow-wrap: anywhere; }
+.voce-tag { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+
+.tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: .7rem; font-weight: 700; padding: 3px 8px; border-radius: 999px;
+  background: var(--grigio-200); color: var(--grigio-700);
+  text-transform: uppercase; letter-spacing: .3px;
+}
+.tag-rosso { background: var(--rosso-chiaro); color: var(--rosso); }
+.tag-ambra { background: var(--ambra-chiaro); color: var(--ambra); }
+.tag-verde { background: var(--verde-chiaro); color: var(--verde); }
+/* Grigio e non ambra: segnala una riserva sul dato, non un problema del
+   presidio. In ambra si confonderebbe con "scade presto", che l'operatore
+   deve poter distinguere a colpo d'occhio mentre cammina. */
+.tag-grigio { background: var(--grigio-chiaro, #eceff1); color: var(--testo-tenue, #607d8b); }
+.tag-blu   { background: var(--blu-chiaro); color: var(--blu); }
+
+.barra-stato { width: 5px; border-radius: 3px; align-self: stretch; flex: 0 0 auto; background: var(--grigio-300); }
+.barra-stato.ko { background: var(--rosso); }
+.barra-stato.attenzione { background: var(--ambra); }
+.barra-stato.ok { background: var(--verde); }
+
+.vuoto { text-align: center; color: var(--testo-tenue); padding: 32px 16px; }
+.vuoto-ico { font-size: 2.4rem; display: block; margin-bottom: 8px; }
+
+/* --------------------------------------------------------------- tabbar -- */
+.tabbar {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  background: var(--superficie); border-top: 1px solid var(--bordo);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.tab {
+  position: relative; border: 0; background: transparent; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 7px 2px 8px; font-size: .68rem; font-weight: 600; color: var(--testo-tenue);
+  min-height: 56px;
+}
+.tab-ico { font-size: 1.2rem; line-height: 1; }
+.tab.attivo { color: var(--rosso); }
+.tab.attivo .tab-ico { transform: scale(1.08); }
+
+.badge {
+  position: absolute; top: 3px; right: 50%; transform: translateX(22px);
+  min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+  background: var(--rosso); color: #fff; font-size: .65rem; line-height: 18px; text-align: center;
+}
+.badge-warn { background: var(--ambra); }
+
+/* ---------------------------------------------------------------- sheet -- */
+.sheet-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 45%); z-index: 50; }
+
+.sheet {
+  position: fixed; z-index: 60; inset: auto 0 0 0;
+  max-height: 92dvh; display: flex; flex-direction: column;
+  background: var(--superficie);
+  border-radius: 18px 18px 0 0; box-shadow: var(--ombra-alta);
+  animation: sali .18s ease-out;
+}
+@keyframes sali { from { transform: translateY(14px); opacity: .6; } to { transform: none; opacity: 1; } }
+
+@media (min-width: 720px) {
+  .sheet { inset: 5vh auto 5vh 50%; transform: translateX(-50%); width: 680px; border-radius: 18px; }
+}
+
+.sheet-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 12px 8px 12px 16px; border-bottom: 1px solid var(--bordo);
+  position: sticky; top: 0; background: var(--superficie); border-radius: 18px 18px 0 0;
+}
+.sheet-head h2 { margin: 0; font-size: 1rem; overflow-wrap: anywhere; }
+.sheet-body { overflow-y: auto; padding: 14px 16px calc(20px + env(safe-area-inset-bottom, 0px)); -webkit-overflow-scrolling: touch; }
+
+/* --------------------------------------------------------------- schede -- */
+.dati { display: grid; grid-template-columns: minmax(96px, 34%) 1fr; gap: 6px 12px; font-size: .88rem; }
+.dati dt { color: var(--testo-tenue); font-weight: 600; }
+.dati dd { margin: 0; overflow-wrap: anywhere; }
+
+.azioni-rapide { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+
+.storico { border-left: 2px solid var(--bordo); padding-left: 12px; margin-left: 4px; }
+.storico-voce { position: relative; padding: 8px 0; font-size: .85rem; }
+.storico-voce::before {
+  content: ''; position: absolute; left: -18px; top: 14px;
+  width: 9px; height: 9px; border-radius: 999px; background: var(--grigio-300);
+}
+.storico-voce.ok::before { background: var(--verde); }
+.storico-voce.ko::before { background: var(--rosso); }
+
+.avviso {
+  border-left: 4px solid var(--ambra); background: var(--ambra-chiaro);
+  padding: 10px 12px; border-radius: 8px; font-size: .86rem; margin: 10px 0;
+}
+.avviso-rosso { border-left-color: var(--rosso); background: var(--rosso-chiaro); }
+.avviso-verde { border-left-color: var(--verde); background: var(--verde-chiaro); }
+.avviso-blu   { border-left-color: var(--blu); background: var(--blu-chiaro); }
+.avviso ul { margin: 6px 0 0; padding-left: 18px; }
+.avviso code { font-size: .8em; overflow-wrap: anywhere; }
+
+.dropzona {
+  border: 2px dashed var(--bordo); border-radius: var(--raggio);
+  padding: 26px 16px; text-align: center; color: var(--testo-tenue);
+  background: var(--grigio-50);
+}
+.dropzona.sopra { border-color: var(--rosso); background: var(--rosso-chiaro); color: var(--rosso); }
+
+.mini { font-size: .78rem; color: var(--testo-tenue); }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .78rem; overflow-wrap: anywhere; }
+
+.tabellina { width: 100%; border-collapse: collapse; font-size: .84rem; }
+.tabellina th, .tabellina td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--bordo); }
+.tabellina th { color: var(--testo-tenue); font-size: .74rem; text-transform: uppercase; letter-spacing: .3px; }
+.tabellina td.num, .tabellina th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ---------------------------------------------------------------- toast -- */
+.toast-wrap {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  bottom: calc(var(--altezza-tabbar) + 12px); z-index: 80;
+  display: flex; flex-direction: column; gap: 8px; width: min(92vw, 460px);
+}
+.toast {
+  background: var(--grigio-900); color: #fff; padding: 11px 14px;
+  border-radius: 10px; box-shadow: var(--ombra-alta); font-size: .88rem;
+  animation: sali .15s ease-out;
+}
+.toast-ok { background: var(--verde); }
+.toast-ko { background: var(--rosso); }
+.toast-warn { background: var(--ambra); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* ------------------------------------------------------- navigazione ------ */
+.briciole {
+  display: flex; align-items: center; gap: 4px; flex-wrap: wrap;
+  margin: 0 0 10px; font-size: .82rem;
+}
+.briciola {
+  border: 0; background: var(--grigio-200); color: var(--testo);
+  padding: 5px 10px; border-radius: 999px; cursor: pointer;
+  font-weight: 600; min-height: 32px;
+}
+.briciola-attiva { background: var(--rosso); color: #fff; cursor: default; }
+.briciola-sep { color: var(--testo-tenue); }
+
+.voce-freccia {
+  align-self: center; color: var(--testo-tenue); font-size: 1.4rem;
+  flex: 0 0 auto; padding-left: 4px;
+}
+
+.avanzamento {
+  height: 6px; border-radius: 3px; background: var(--grigio-200);
+  overflow: hidden; margin: 6px 0 2px;
+}
+.avanzamento-riemp { height: 100%; background: var(--verde); border-radius: 3px; }
+
+/* Un campo vuoto che conta: si mostra apposta, con il perché accanto. */
+.mancante {
+  color: var(--ambra); font-style: italic; font-weight: 600; font-size: .85em;
+}
+
+details summary { cursor: pointer; padding: 6px 0; }
+
+/* --------------------------------------------------------------------------
+   Porta d'ingresso (parola d'accesso + identità operatore)
+   -------------------------------------------------------------------------- */
+.porta {
+  position: fixed; inset: 0; z-index: 100;
+  background: var(--sfondo, #f6f7f9);
+  overflow-y: auto;
+  /* padding-bottom generoso: su iPhone la tastiera copre metà schermo e il
+     bottone "Entra" finisce sotto, irraggiungibile senza chiudere la tastiera */
+  padding: max(24px, env(safe-area-inset-top)) 16px 45vh;
+  display: flex; justify-content: center; align-items: flex-start;
+}
+.porta-box { width: 100%; max-width: 420px; }
+.porta-titolo { font-size: 1.5rem; margin: 8px 0 2px; font-weight: 500; }
+.porta-titolo b { font-weight: 700; }
+.porta-mark { font-size: 1.4rem; }
+.porta-sub { margin: 0 0 22px; color: var(--testo-tenue, #607d8b); font-size: .9rem; }
+.porta .campo { display: block; margin-bottom: 14px; }
+.porta .campo-etichetta {
+  display: block; font-size: .82rem; font-weight: 600;
+  color: var(--testo-tenue, #607d8b); margin-bottom: 5px;
+}
+.porta .campo input {
+  width: 100%; box-sizing: border-box;
+  /* 16px esatti: sotto questa soglia iOS ingrandisce la pagina al focus e
+     l'operatore si ritrova il modulo fuori schermo */
+  font-size: 16px; padding: 12px 13px;
+  border: 1px solid var(--bordo, #cfd8dc); border-radius: 10px;
+  background: var(--carta, #fff); color: inherit;
+}
+.porta .campo input:focus {
+  outline: 2px solid var(--primario, #b91c1c); outline-offset: 1px; border-color: transparent;
+}
+.porta-nota {
+  font-size: .8rem; line-height: 1.5; margin: 4px 0 16px; padding: 12px 13px;
+  border-radius: 10px; background: var(--carta, #fff);
+  border: 1px solid var(--bordo, #cfd8dc); color: var(--testo-tenue, #546e7a);
+}
+.porta-errore {
+  font-size: .85rem; font-weight: 600; margin-bottom: 12px;
+  padding: 10px 12px; border-radius: 10px;
+  background: var(--rosso-chiaro, #ffebee); color: var(--rosso, #c62828);
+}
+
+/* --------------------------------------------------------------------------
+   Filtri: navigazione a due livelli invece di una lista piatta di categorie
+   -------------------------------------------------------------------------- */
+.filtro-barra {
+  display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 8px;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.filtro-barra::-webkit-scrollbar { display: none; }
+.filtro-riga {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 11px 12px; border-radius: 12px; text-align: left;
+  border: 1px solid var(--bordo, #cfd8dc); background: var(--carta, #fff);
+  color: inherit; font: inherit; cursor: pointer;
+}
+.filtro-riga[aria-pressed="true"] {
+  border-color: var(--primario, #b91c1c);
+  background: var(--rosso-chiaro, #ffebee);
+}
+.filtro-riga .f-ico { font-size: 1.25rem; line-height: 1; flex: 0 0 auto; }
+.filtro-riga .f-testo { flex: 1 1 auto; min-width: 0; }
+.filtro-riga .f-nome {
+  display: block; font-weight: 600; font-size: .93rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.filtro-riga .f-sotto { display: block; font-size: .78rem; color: var(--testo-tenue, #78909c); }
+.filtro-riga .f-conta {
+  flex: 0 0 auto; font-variant-numeric: tabular-nums; font-weight: 700;
+  font-size: .85rem; padding: 3px 9px; border-radius: 999px;
+  background: var(--sfondo, #eceff1); color: var(--testo-tenue, #546e7a);
+}
+.filtro-riga[aria-pressed="true"] .f-conta {
+  background: var(--primario, #b91c1c); color: #fff;
+}
+.filtro-elenco { display: grid; gap: 8px; margin: 0 0 12px; padding: 0; list-style: none; }
+
+/* Riga di contesto: dice quale filtro è attivo e come toglierlo. Senza, un
+   elenco vuoto si legge come "non c'è niente" invece che "stai guardando una
+   fetta". */
+.contesto {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin: 0 0 10px; padding: 9px 11px; border-radius: 10px;
+  background: var(--ambra-chiaro, #fff8e1); font-size: .85rem;
+}
+.contesto b { font-weight: 700; }
+.contesto button {
+  margin-left: auto; border: 0; background: transparent; cursor: pointer;
+  font: inherit; font-weight: 700; text-decoration: underline;
+  color: var(--primario, #b91c1c); padding: 2px 4px;
+}
+
+/* Il titolo è un pulsante (torna al riepilogo) ma non deve sembrarlo: chi non
+   scopre che è cliccabile non perde niente, chi lo tocca torna a casa. */
+button.brand {
+  border: 0; background: transparent; padding: 0; margin: 0;
+  font: inherit; color: inherit; cursor: pointer; text-align: left;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+button.brand:active { opacity: .6; }
+
+/* Caselle di scelta delle tipologie del giro. Righe intere e non chip: su un
+   telefono un quadratino di 13px accanto a un testo lungo si manca, e mancarlo
+   significa iniziare il giro con il perimetro sbagliato. */
+.caselle { display: grid; gap: 6px; margin: 8px 0 4px; }
+.casella {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--bordo, #cfd8dc); background: var(--carta, #fff);
+  cursor: pointer;
+}
+.casella input { width: 20px; height: 20px; flex: 0 0 auto; accent-color: var(--primario, #b91c1c); }
+.casella-testo { flex: 1 1 auto; font-size: .92rem; }
+.casella:has(input:checked) {
+  border-color: var(--primario, #b91c1c); background: var(--rosso-chiaro, #ffebee);
+}
+
+/* Chip dei filtri attivi: ognuno si toglie da solo. Con più selezioni, dover
+   azzerare tutto per togliere la terza è il motivo per cui non si usano. */
+.contesto-chip { flex-wrap: wrap; gap: 6px; }
+.chip-filtro {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 8px 5px 10px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--primario, #b91c1c); background: var(--carta, #fff);
+  color: inherit; font: inherit; font-size: .82rem; margin: 0;
+}
+.chip-filtro .chip-conta {
+  font-variant-numeric: tabular-nums; font-weight: 700; font-size: .75rem;
+  color: var(--testo-tenue, #78909c);
+}
+.chip-filtro .chip-x { font-size: .8rem; color: var(--primario, #b91c1c); font-weight: 700; }
+.chip-filtro:active { opacity: .6; }
+
+/* Sotto-schede (Riepilogo / Elenco) */
+.sottoschede {
+  display: flex; gap: 4px; margin: 0 0 12px;
+  background: var(--sfondo, #eceff1); padding: 4px; border-radius: 12px;
+}
+.sottoscheda {
+  flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: 6px;
+  border: 0; background: transparent; cursor: pointer;
+  padding: 9px 8px; border-radius: 9px; font: inherit; font-size: .88rem;
+  font-weight: 600; color: var(--testo-tenue, #607d8b);
+}
+.sottoscheda.attiva {
+  background: var(--carta, #fff); color: var(--primario, #b91c1c);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+}
+.sottoscheda-n {
+  font-variant-numeric: tabular-nums; font-size: .75rem; font-weight: 700;
+  padding: 1px 7px; border-radius: 999px;
+  background: var(--sfondo, #eceff1); color: var(--testo-tenue, #607d8b);
+}
+.sottoscheda.attiva .sottoscheda-n { background: var(--rosso-chiaro, #ffebee); }
+
+.elenco-cluster .voce { padding-right: 10px; }
+.cluster-n {
+  flex: 0 0 auto; font-variant-numeric: tabular-nums; font-weight: 700;
+  font-size: 1.05rem; color: var(--testo, #263238);
+}
+
+/* Barra di aggiornamento: RESTA finché non la si tocca. Un avviso che sparisce
+   da solo dopo dodici secondi si legge quando è già andato via, e il risultato
+   è che si pubblica una versione nuova e sul telefono non cambia niente. */
+.aggiornamento {
+  position: fixed; z-index: 45;
+  left: 8px; right: 8px; bottom: calc(var(--altezza-tabbar) + 8px + env(safe-area-inset-bottom, 0px));
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 10px 10px 14px; border-radius: 12px;
+  background: var(--testo, #263238); color: #fff;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 28%);
+  font-size: .88rem;
+}
+.agg-testo { flex: 1 1 auto; }
+.agg-btn {
+  flex: 0 0 auto; border: 0; cursor: pointer; font: inherit; font-weight: 700;
+  padding: 8px 14px; border-radius: 9px;
+  background: #fff; color: var(--primario, #b91c1c);
+}
+.agg-chiudi {
+  flex: 0 0 auto; border: 0; background: transparent; color: #fff;
+  cursor: pointer; font-size: 1rem; padding: 4px 6px; opacity: .75;
+}
+
+/* Categoria senza presidi nel perimetro corrente: si mostra lo stesso, perché
+   nasconderla significa che l'operatore non sa che esiste — nel parco mancano
+   del tutto idranti e gruppi elettrogeni, e chi ne trova uno non troverebbe
+   nemmeno dove metterlo. */
+.casella-vuota { opacity: .55; }
+.casella-vuota .f-conta { background: transparent; }
+
+/* --------------------------------------------------------------------------
+   Respiro verticale fra i blocchi
+   --------------------------------------------------------------------------
+   Riga di filtro, chip, KPI e schede stavano attaccati: "Tutte le tipologie /
+   18 · tocca per filtrare / 458" seguito subito da "32 scadenze aperte / 0
+   scadute" si legge come un unico blocco di numeri, e non si capisce dove
+   finisce il filtro e dove comincia il riepilogo. Lo spazio qui non è
+   decorazione: è quello che separa due informazioni diverse. */
+.filtro-riga { margin-bottom: 10px; }
+.filtro-elenco > li:last-child .filtro-riga { margin-bottom: 0; }
+.contesto { margin-bottom: 12px; }
+.filtro-barra { margin-bottom: 10px; }
+.griglia-kpi { margin: 4px 0 14px; }
+.cerca-wrap { margin-bottom: 10px; }
+.sottoschede + .filtro-barra,
+.sottoschede + .filtro-riga { margin-top: 2px; }
+.card + .card { margin-top: 12px; }
+.elenco { margin-top: 4px; }
+
+/* Interruttore a due stati: resta fermo e mostra entrambe le alternative con il
+   loro conteggio. Un chip in una striscia che scorre esce dalla vista, e allora
+   non si vede più in che modo si sta guardando l'elenco. */
+.interruttore {
+  display: flex; gap: 4px; margin: 0 0 10px;
+  background: var(--sfondo, #eceff1); padding: 4px; border-radius: 12px;
+}
+.interruttore-voce {
+  flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: 6px;
+  border: 0; background: transparent; cursor: pointer; font: inherit;
+  padding: 10px 8px; border-radius: 9px; font-size: .86rem; font-weight: 600;
+  color: var(--testo-tenue, #607d8b);
+  /* 44px: sotto questa altezza un pollice sbaglia bersaglio */
+  min-height: 44px;
+}
+.interruttore-voce.attiva {
+  background: var(--carta, #fff); color: var(--primario, #b91c1c);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+}
+.interruttore-n {
+  font-variant-numeric: tabular-nums; font-size: .74rem; font-weight: 700;
+  padding: 1px 7px; border-radius: 999px;
+  background: var(--sfondo, #eceff1); color: var(--testo-tenue, #607d8b);
+}
+.interruttore-voce.attiva .interruttore-n { background: var(--rosso-chiaro, #ffebee); }
+
+/* --------------------------------------------------------------------------- */
+/* Grafici                                                                      */
+/* --------------------------------------------------------------------------- */
+/*
+ * Dimensioni pensate per un telefono tenuto con una mano sola: la ciambella sta
+ * accanto alla legenda su schermo largo e sopra su schermo stretto, e le righe
+ * toccabili hanno un'area di 44px — sotto quella soglia si sbaglia bersaglio.
+ */
+.grafico-ciambella {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  color: var(--testo);
+}
+.legenda { list-style: none; margin: 0; padding: 0; }
+.grafico-ciambella .legenda { flex: 1; min-width: 150px; }
+.legenda li {
+  display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: .88rem;
+}
+.legenda-pallino {
+  width: 11px; height: 11px; border-radius: 3px; flex: none;
+}
+.legenda-testo { color: var(--testo-tenue); }
+.grafico-ciambella .legenda-testo { flex: 1; }
+
+/* Legenda su una riga sola, sopra le barre: sta sempre in vista, anche
+   scorrendo un elenco lungo di righe. */
+.legenda-riga {
+  display: flex; flex-wrap: wrap; gap: 4px 14px; margin-bottom: 6px;
+}
+.legenda-riga li { padding: 0; }
+
+.grafico-barre { list-style: none; margin: 0; padding: 0; }
+.grafico-barre > li { margin: 0 0 6px; }
+.barra-tocca {
+  display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+  background: none; border: 0; padding: 8px 4px; margin: 0; border-radius: 8px;
+  min-height: 44px; cursor: pointer; color: inherit; font: inherit;
+}
+.barra-tocca:active { background: var(--grigio-100); }
+.barra-tocca .barra-corpo { flex: 1; min-width: 0; }
+.barra-freccia { color: var(--testo-tenue); font-size: 1.3rem; flex: none; }
+.barra-corpo { display: block; }
+.barra-riga { display: flex; align-items: baseline; gap: 8px; }
+.barra-etichetta {
+  flex: 1; min-width: 0; font-size: .92rem; font-weight: 500;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.barra-numero { font-variant-numeric: tabular-nums; font-size: .95rem; }
+.barra-esterna {
+  height: 10px; background: var(--grigio-100); border-radius: 999px;
+  overflow: hidden; margin-top: 5px;
+}
+.barra-piena { display: flex; height: 100%; border-radius: 999px; overflow: hidden; }
+/* Una quota che esiste deve vedersi: 2 su 430 è mezzo pixel, e mezzo pixel
+   scompare. Il numero resta comunque scritto sotto la barra. */
+.barra-quota { min-width: 3px; }
+.barra-dettaglio { margin-top: 4px; }
+.barra-punto { color: var(--grigio-300); }
+
+/* Tasto «indietro» in barra: compare solo quando c'è dove tornare. Un tasto
+   sempre presente ma inerte su metà delle schermate insegna a non usarlo. */
+.btn-indietro {
+  font-size: 1.6rem; line-height: 1; font-weight: 600;
+  margin-right: -4px; flex: none;
+}
+
+/* --------------------------------------------------------------------------- */
+/* Esecuzione dei controlli: un piano per riga                                  */
+/* --------------------------------------------------------------------------- */
+/*
+ * Pensato per una mano sola con i guanti: i due pulsanti dell'esito sono
+ * larghi metà schermo, distanti fra loro, e portano il SEGNO oltre al colore —
+ * ✓ e ✕ si distinguono anche in bianco e nero, rosso e verde no.
+ */
+.piani-elenco { display: grid; gap: 10px; }
+
+.piano-riga {
+  border: 1px solid var(--bordo); border-radius: var(--raggio);
+  padding: 12px; background: var(--superficie);
+  border-left: 4px solid var(--grigio-300);
+}
+.piano-riga.ko { border-left-color: var(--rosso); }
+.piano-riga.attenzione { border-left-color: var(--ambra); }
+.piano-riga.ok { border-left-color: var(--verde); }
+
+.piano-testa { display: flex; align-items: baseline; gap: 8px; }
+.piano-nome { flex: 1; font-weight: 600; line-height: 1.25; }
+.piano-freq { color: var(--testo-tenue); font-size: .82rem; white-space: nowrap; }
+
+.piano-azioni { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.piano-fatto {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  background: var(--verde-chiaro); color: var(--verde);
+  border-radius: 8px; padding: 8px 10px; font-size: .88rem; font-weight: 600;
+  margin-bottom: 6px;
+}
+.piano-fatto .btn { font-weight: 500; }
+
+.btn-esito {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; font-weight: 600;
+}
+.esito-segno { font-size: 1.2rem; line-height: 1; }
+.btn-grande { min-height: 56px; font-size: 1.02rem; }
+.azioni-esito { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+/* Un pulsante che non si può premere deve DIRSI spento, non solo esserlo:
+   sotto c'è scritto perché, e il colore pieno lo farebbe cercare invano. */
+.btn-spento { opacity: .45; filter: saturate(.4); cursor: not-allowed; }
+.btn-esito.scelto { outline: 3px solid var(--blu); outline-offset: 2px; }
+
+.checklist-conta {
+  font-size: .85rem; color: var(--testo-tenue); font-weight: 600;
+  margin-bottom: 6px;
+}
+.elenco-azioni { list-style: none; margin: 0 0 10px; padding: 0; }
+.elenco-azioni > li { border-bottom: 1px solid var(--grigio-100); }
+.elenco-azioni > li:last-child { border-bottom: 0; }
+/* Bersaglio grande: si spunta in piedi, con i guanti, tenendo il telefono
+   con la stessa mano. 44px è il minimo sotto il quale si manca. */
+.casella-grande {
+  display: flex; align-items: flex-start; gap: 12px;
+  min-height: 48px; padding: 10px 2px; cursor: pointer;
+}
+.casella-grande input[type="checkbox"] {
+  width: 26px; height: 26px; flex: none; margin-top: 1px; accent-color: var(--verde);
+}
+.casella-grande .casella-testo { line-height: 1.35; }
+
+.card-piatta { box-shadow: none; border: 1px solid var(--bordo); }
+.box-anomalia {
+  border: 1px solid var(--rosso); background: var(--rosso-chiaro);
+  border-radius: var(--raggio); padding: 12px; margin-top: 12px;
+}
+.dettagli-extra { margin-top: 14px; }
+.dettagli-extra > summary {
+  cursor: pointer; padding: 10px 0; font-size: .9rem; color: var(--testo-tenue);
+}
+.box-non-eseguito {
+  border: 1px solid var(--bordo); background: var(--grigio-50);
+  border-radius: var(--raggio); padding: 12px; margin-top: 10px;
+}
+
+/* Scelta a pulsanti, al posto dei menù a tendina.
+   Bersagli da 44px, tutte le voci visibili insieme, niente ruota di sistema
+   che copra il foglio da cui è partita. */
+.scelte { display: flex; flex-wrap: wrap; gap: 6px; }
+.scelta {
+  min-height: 44px; padding: 8px 14px; border-radius: 999px;
+  border: 1px solid var(--bordo); background: var(--superficie);
+  color: var(--testo); font: inherit; font-size: .9rem; cursor: pointer;
+}
+.scelta:active { background: var(--grigio-100); }
+.scelta-attiva {
+  background: var(--blu); border-color: var(--blu); color: #fff; font-weight: 600;
+}
+
+/* Il verbale di un controllo registrato: che cosa risulta fatto e che cosa no. */
+.elenco-verbale { list-style: none; margin: 0; padding: 0; }
+.elenco-verbale > li {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 7px 0; border-bottom: 1px solid var(--grigio-100); font-size: .9rem;
+}
+.elenco-verbale > li:last-child { border-bottom: 0; }
+.elenco-verbale .verbale-segno { flex: none; font-weight: 700; }
+.elenco-verbale .fatta .verbale-segno { color: var(--verde); }
+.elenco-verbale .non-fatta { color: var(--testo-tenue); }
+.elenco-verbale .non-fatta .verbale-segno { color: var(--rosso); }
+.box-annulla {
+  border: 1px solid var(--rosso); background: var(--rosso-chiaro);
+  border-radius: var(--raggio); padding: 12px; margin-top: 10px;
+}
+.piano-fatto-testo { flex: 1; min-width: 0; }
+
+/* Le voci dello storico sono pulsanti: si aprono sul verbale del controllo. */
+.storico-voce-btn {
+  display: block; width: 100%; text-align: left; background: none; border: 0;
+  color: inherit; font: inherit; cursor: pointer; position: relative;
+  min-height: 44px; padding-right: 22px;
+}
+.storico-voce-btn:active { background: var(--grigio-100); }
+.storico-voce-btn .voce-freccia {
+  position: absolute; right: 2px; top: 50%; transform: translateY(-50%);
+  color: var(--testo-tenue);
+}
+
+/* Riga compatta: i controlli in regola, che si aprono ma non si registrano da
+   qui. Niente pulsanti giganti — chi apre quella sezione cerca informazione. */
+.piano-riga-compatta { padding: 0; }
+.piano-tocca {
+  display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+  background: none; border: 0; color: inherit; font: inherit; cursor: pointer;
+  padding: 10px 12px; min-height: 44px; border-radius: var(--raggio);
+}
+.piano-tocca:active { background: var(--grigio-100); }
+.piano-corpo { flex: 1; min-width: 0; }
+
+.piano-prossima { font-size: .8rem; font-weight: 500; opacity: .85; }
+/* Che cosa è successo alle scadenze: quella che si chiude e quella che si apre.
+   La seconda in evidenza, perché è quella che si va a cercare. */
+.riquadro-scadenza {
+  margin-top: 12px; padding: 10px 12px; border-radius: var(--raggio);
+  background: var(--blu-chiaro); color: var(--testo);
+}
+
+/* Il pallino dell'elenco: devo fermarmi qui?
+   Colore E simbolo insieme — contro luce rosso e ambra si somigliano, e c'è chi
+   non li distingue affatto. */
+.pallino-controlli {
+  flex: none; width: 22px; height: 22px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .8rem; font-weight: 800; line-height: 1; margin-right: 2px;
+  background: var(--grigio-200); color: var(--grigio-700);
+}
+.pallino-controlli.ko { background: var(--rosso); color: #fff; }
+.pallino-controlli.attenzione { background: var(--ambra); color: #fff; }
+.pallino-controlli.ok { background: var(--verde); color: #fff; }
+.pallino-controlli.ignoto { background: var(--grigio-300); color: var(--grigio-700); }
+
+/* Sette schede in una barra da telefono.
+   Sotto i 380px le etichette non ci starebbero a grandezza piena: si stringe il
+   testo, non l'area toccabile. Il bersaglio resta alto quanto la barra — è
+   l'altezza che conta per il pollice, non la larghezza della parola. */
+@media (max-width: 420px) {
+  .tab { font-size: .58rem; letter-spacing: -.01em; }
+  .tab > span:not(.tab-ico):not(.badge) {
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+}
+
+/* --------------------------------------------------------------------------- */
+/* Albero delle ubicazioni                                                      */
+/* --------------------------------------------------------------------------- */
+/*
+ * Rientro contenuto: su uno schermo da 375px, quattro livelli con rientro da
+ * 24px lasciano meno di trecento pixel al testo. Qui il rientro è 14px e la
+ * gerarchia la porta anche la riga verticale, che si vede anche quando il
+ * rientro non basta più.
+ */
+.albero-ramo { position: relative; }
+.albero-figli {
+  margin-left: 14px; padding-left: 10px; border-left: 1px solid var(--bordo);
+}
+.albero-nodo {
+  display: flex; align-items: center; gap: 4px;
+  border-bottom: 1px solid var(--grigio-100);
+}
+.albero-tocca {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px;
+  background: none; border: 0; color: inherit; font: inherit; cursor: pointer;
+  text-align: left; padding: 9px 2px; min-height: 44px;
+}
+.albero-tocca:active { background: var(--grigio-100); }
+.albero-freccia {
+  flex: none; width: 14px; text-align: center; color: var(--testo-tenue);
+  font-size: .8rem;
+}
+.albero-ico { flex: none; font-size: 1.05rem; }
+.albero-corpo { flex: 1; min-width: 0; }
+.albero-nome {
+  font-weight: 600; font-size: .93rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.albero-impianto > .albero-tocca .albero-nome { font-size: 1rem; }
+.albero-comandi { display: flex; gap: 4px; flex: none; }
+.albero-comandi .btn { padding: 6px 8px; font-size: .72rem; min-height: 36px; }
+
+/* Righe selezionabili: tutta la riga è il bersaglio, non la casella.
+   Centrare il pollice su venti pixel mentre si tiene una scala è il modo per
+   selezionare il presidio sbagliato. */
+.voce-selezionabile.scelta { background: var(--blu-chiaro); }
+.voce-casella { flex: none; display: flex; align-items: center; padding-left: 2px; }
+.voce-casella input[type="checkbox"] {
+  width: 22px; height: 22px; accent-color: var(--blu); pointer-events: none;
+}
+.barra-azione { margin: 14px 0 4px; }

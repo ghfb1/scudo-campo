@@ -1,0 +1,23 @@
+{
+  "versione": "scudo-campo-v41",
+  "file": {
+    "index.html": "9189ce16c44519ff",
+    "styles.css": "7c84a5005a098020",
+    "manifest.webmanifest": "2bf1df05183c2e5e",
+    "icon.svg": "0ca3e83e0f8189be",
+    "js/app.js": "809f24746252f4b3",
+    "js/stato.js": "61fb713c4d233978",
+    "js/store.js": "a0a5ba7340901190",
+    "js/ui.js": "977a763e43f230c9",
+    "js/pacchetto.js": "605e9a6c461438ec",
+    "js/zip.js": "a6078a06f05c0a23",
+    "js/campi.js": "4ed5b1a54f255f7d",
+    "js/accesso.js": "6e1af55948a7e57c",
+    "js/piani.js": "d14fd69618fc0b8a",
+    "js/grafici.js": "aa1fb82bf0ca8a6a",
+    "js/controllo.js": "72a2ab16d2d674a7",
+    "js/calcoli.js": "1221849a092340bf",
+    "js/luoghi.js": "3791fa1dccb0ce2d",
+    "sw.js": "1747ccbddf124848"
+  }
+}

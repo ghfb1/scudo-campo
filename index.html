@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#b91c1c">
+<meta name="description" content="Scudo Campo — rilievo dei presidi antincendio per l'operatore in campo. Funziona offline, non perde dati.">
+<title>Scudo Campo — presidi antincendio</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Scudo Campo">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="topbar" id="topbar">
+  <div class="topbar-main">
+    <button class="icon-btn btn-indietro" id="btn-indietro" type="button" aria-label="Torna indietro" hidden>‹</button>
+    <button class="brand" id="btn-home" type="button" aria-label="Torna al riepilogo"><span class="brand-mark">🧯</span><span class="brand-text">Scudo <b>Campo</b></span></button>
+    <button class="chip chip-btn" id="btn-sessione" type="button" aria-label="Sessione e operatore">
+      <span id="chip-operatore">operatore</span>
+    </button>
+  </div>
+  <div class="statusbar" id="statusbar" role="status" aria-live="polite"></div>
+</header>
+
+<main id="vista" class="vista" tabindex="-1"></main>
+
+<nav class="tabbar" id="tabbar" aria-label="Sezioni">
+  <button data-vista="riepilogo" class="tab attivo" type="button"><span class="tab-ico">📊</span><span>Riepilogo</span></button>
+  <button data-vista="presidi"  class="tab" type="button"><span class="tab-ico">🗂️</span><span>Presidi</span></button>
+  <button data-vista="scadenze" class="tab" type="button"><span class="tab-ico">📅</span><span>Scadenze</span></button>
+  <button data-vista="anomalie" class="tab" type="button"><span class="tab-ico">⚠️</span><span>Anomalie</span><span class="badge" id="badge-anomalie" hidden></span></button>
+  <button data-vista="piani"    class="tab" type="button"><span class="tab-ico">📋</span><span>Piani</span></button>
+  <button data-vista="luoghi"   class="tab" type="button"><span class="tab-ico">🏭</span><span>Luoghi</span></button>
+  <button data-vista="dati"     class="tab" type="button"><span class="tab-ico">💾</span><span>Dati</span><span class="badge badge-warn" id="badge-dati" hidden></span></button>
+</nav>
+
+<!-- Foglio a comparsa: schede presidio, form, conferme -->
+<div class="sheet-backdrop" id="sheet-backdrop" hidden></div>
+<section class="sheet" id="sheet" hidden role="dialog" aria-modal="true" aria-labelledby="sheet-titolo">
+  <header class="sheet-head">
+    <h2 id="sheet-titolo">—</h2>
+    <button class="icon-btn" id="sheet-chiudi" type="button" aria-label="Chiudi">✕</button>
+  </header>
+  <div class="sheet-body" id="sheet-body"></div>
+</section>
+
+<div class="toast-wrap" id="toast-wrap" aria-live="polite"></div>
+
+<noscript>
+  <p style="padding:1.5rem">Scudo Campo ha bisogno di JavaScript attivo per funzionare offline.</p>
+</noscript>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
