@@ -1,0 +1,28 @@
+{
+  "versione": "scudo-campo-v64",
+  "pubblicata": "scudo-campo-v63",
+  "file": {
+    "index.html": "00112bef54c36d13",
+    "styles.css": "8eee4df0c0bf7deb",
+    "manifest.webmanifest": "2bf1df05183c2e5e",
+    "icon.svg": "0ca3e83e0f8189be",
+    "js/app.js": "98f5e044057b156e",
+    "js/stato.js": "65b1c3bf44800831",
+    "js/store.js": "a0a5ba7340901190",
+    "js/ui.js": "c1d32075556a3763",
+    "js/pacchetto.js": "c8628cc8125bb38a",
+    "js/zip.js": "a6078a06f05c0a23",
+    "js/campi.js": "8bbff91ac99b3bd0",
+    "js/accesso.js": "5e4a24d8c291e69f",
+    "js/piani.js": "d14fd69618fc0b8a",
+    "js/grafici.js": "aa1fb82bf0ca8a6a",
+    "js/controllo.js": "823f93e179f3d4be",
+    "js/calcoli.js": "6196974948583cba",
+    "js/luoghi.js": "92e3575319692204",
+    "js/conferma_pacchetto.js": "92dfc9681a20e25f",
+    "js/giro_presidi.js": "c98f7e5560e92805",
+    "js/nome_presidio.js": "47312c2113753610",
+    "js/admin.js": "b1cc735d48672871",
+    "sw.js": "9135b54031e5c7e8"
+  }
+}
