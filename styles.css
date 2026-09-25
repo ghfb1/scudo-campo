@@ -1,0 +1,2138 @@
+/*
+ * Scudo Campo — foglio di stile unico.
+ *
+ * Progettato per un telefono tenuto in una mano, dentro una cabina, spesso con
+ * i guanti: bersagli da 44px minimo, contrasto alto, niente hover come unico
+ * segnale, e la barra delle sezioni in basso dove arriva il pollice.
+ * Le aree sicure (`env(safe-area-inset-*)`) servono ai telefoni con il notch.
+ */
+
+:root {
+  --rosso: #b91c1c;
+  --rosso-scuro: #7f1d1d;
+  --rosso-chiaro: #fee2e2;
+  --ambra: #b45309;
+  --ambra-chiaro: #fef3c7;
+  --verde: #15803d;
+  --verde-chiaro: #dcfce7;
+  --blu: #1d4ed8;
+  --blu-chiaro: #dbeafe;
+  --grigio-900: #111827;
+  --grigio-700: #374151;
+  --grigio-500: #6b7280;
+  --grigio-300: #d1d5db;
+  --grigio-200: #e5e7eb;
+  --grigio-100: #f3f4f6;
+  --grigio-50: #f9fafb;
+  --bianco: #fff;
+
+  --sfondo: var(--grigio-100);
+  --superficie: var(--bianco);
+  --testo: var(--grigio-900);
+  --testo-tenue: var(--grigio-500);
+  --bordo: var(--grigio-300);
+
+  --raggio: 12px;
+  --ombra: 0 1px 3px rgb(0 0 0 / 12%), 0 1px 2px rgb(0 0 0 / 6%);
+  --ombra-alta: 0 12px 32px rgb(0 0 0 / 22%);
+  --altezza-topbar: 92px;
+  --altezza-tabbar: calc(58px + env(safe-area-inset-bottom, 0px));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --sfondo: #0b0f16;
+    --superficie: #151b25;
+    --testo: #eef2f7;
+    --testo-tenue: #9aa6b6;
+    --bordo: #2b3543;
+    --grigio-50: #1b2230;
+    --grigio-100: #131923;
+    --grigio-200: #232c39;
+    --rosso-chiaro: #3b1414;
+    --ambra-chiaro: #3a2a08;
+    --verde-chiaro: #0e2f1c;
+    --blu-chiaro: #12224a;
+    --ombra: 0 1px 3px rgb(0 0 0 / 50%);
+  }
+}
+
+* { box-sizing: border-box; }
+
+/*
+ * `[hidden]` è display:none solo nel foglio dell'user agent, che ha priorità
+ * più bassa di qualunque regola d'autore: senza questa riga, `.sheet { display:
+ * flex }` mostra il foglio modale anche quando è marcato hidden, e all'avvio la
+ * pagina risulta coperta da un pannello vuoto. Vale per ogni elemento con
+ * `display` esplicito, quindi la regola sta qui in cima e non caso per caso.
+ */
+[hidden] { display: none !important; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+/*
+ * ⛔ IL DOCUMENTO NON SCORRE: scorre solo `main` (19/09/2026).
+ *
+ * Segnalazione dell'operatore: «il menu in basso spesso scrollando si disancora
+ * dal fondo dello schermo», con la foto della tabbar a metà pagina, contenuto
+ * sopra e sotto.
+ *
+ * Non era un difetto del nostro CSS: è ciò che Safari su iOS fa con un elemento
+ * `position: fixed; bottom: 0` mentre il documento scorre e la barra degli
+ * indirizzi si ritrae o si riapre. Il viewport visuale cambia sotto l'elemento,
+ * che viene ridisegnato dove stava prima. Non si corregge con un `bottom`
+ * diverso, né con `env(safe-area-*)`: finché a scorrere è il DOCUMENTO, quel
+ * ridisegno resta.
+ *
+ * L'unica correzione che regge è togliere lo scorrimento al documento: la pagina
+ * diventa alta quanto lo schermo, la tabbar è l'ultima riga di una colonna
+ * flessibile — quindi non è più «fissa», è semplicemente in fondo, e non c'è
+ * nessun viewport da inseguire — e a scorrere è `.vista`.
+ *
+ * `100dvh` è l'altezza del viewport DINAMICO, cioè quella vera quando la barra
+ * di Safari si ritrae; `100vh` resta prima come ripiego per i browser che non lo
+ * conoscono (lì la pagina è alta quanto il viewport grande, com'era prima).
+ */
+html, body { height: 100vh; height: 100dvh; }
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 16px;           /* mai sotto: iOS ingrandisce la pagina se un input è < 16px */
+  line-height: 1.45;
+  color: var(--testo);
+  background: var(--sfondo);
+  overscroll-behavior-y: contain;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ---------------------------------------------------------------- topbar -- */
+.topbar {
+  /* Non più `sticky`: è la prima riga della colonna e non scorre con niente,
+     perché a scorrere è `.vista`. */
+  flex: 0 0 auto;
+  z-index: 30;
+  background: linear-gradient(180deg, var(--rosso), var(--rosso-scuro));
+  color: #fff;
+  padding: calc(env(safe-area-inset-top, 0px) + 8px) 12px 0;
+  box-shadow: var(--ombra);
+}
+
+.topbar-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 40px;
+}
+
+.brand { display: flex; align-items: center; gap: 8px; font-size: 1.05rem; letter-spacing: .2px; }
+.brand-mark { font-size: 1.25rem; }
+.brand-text b { font-weight: 700; }
+/* La VERSIONE sotto il titolo (23/09/2026, richiesta dell'operatore: «scritto
+   piccolo, da non dover far aumentare l'altezza dell'intestazione»). Due righe
+   dentro i 40 px che la riga ha già: il titolo stringe l'interlinea, la
+   versione è a .62rem. */
+.brand-testi { display: flex; flex-direction: column; line-height: 1.1; }
+.brand-versione { font-size: .62rem; opacity: .8; letter-spacing: .3px; font-variant-numeric: tabular-nums; }
+.brand-versione:empty { display: none; }
+
+.chip {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 11px; border-radius: 999px;
+  background: rgb(255 255 255 / 18%); color: #fff;
+  font-size: .82rem; font-weight: 600; border: 0;
+  max-width: 55vw; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.chip-btn { cursor: pointer; min-height: 34px; }
+
+.statusbar {
+  display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+  padding: 2px 0 6px; font-size: .74rem;
+}
+/* L'avanzamento del giro nella fascia rossa: una riga, non tre pastiglie. */
+.stato-avanzamento { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 180px; }
+.stato-barra {
+  flex: 1; height: 5px; border-radius: 999px; background: rgb(255 255 255 / 25%); overflow: hidden;
+}
+.stato-barra-riemp { height: 100%; background: #fff; border-radius: 999px; }
+.stato-numero { font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.statusbar:empty { padding: 0 0 8px; }
+
+.pill {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 3px 9px; border-radius: 999px;
+  background: rgb(255 255 255 / 16%); color: #fff; font-weight: 600;
+}
+.pill-ok      { background: rgb(34 197 94 / 30%); }
+.pill-attesa  { background: rgb(250 204 21 / 32%); color: #fff; }
+.pill-allarme { background: rgb(0 0 0 / 35%); color: #fff; }
+
+/* ----------------------------------------------------------------- vista -- */
+/* L'unico elemento che scorre. `min-height: 0` serve: senza, un figlio flex non
+   si lascia rimpicciolire sotto il proprio contenuto e la colonna sfonda in
+   basso portandosi via la tabbar. */
+.vista {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  outline: none;
+}
+/* La larghezza e i margini stanno sul CORPO e non sull'elemento che scorre: così
+   la barra di scorrimento resta al bordo della finestra, com'era quando a
+   scorrere era la pagina. */
+.vista-corpo { padding: 12px 12px calc(20px + env(safe-area-inset-bottom, 0px)); max-width: 900px; margin: 0 auto; }
+
+h1 { font-size: 1.25rem; margin: 4px 0 12px; }
+h2 { font-size: 1.05rem; margin: 20px 0 8px; }
+h3 { font-size: .95rem; margin: 14px 0 6px; }
+
+.card {
+  background: var(--superficie);
+  border: 1px solid var(--bordo);
+  border-radius: var(--raggio);
+  padding: 14px;
+  margin-bottom: 12px;
+  box-shadow: var(--ombra);
+}
+.card > :first-child { margin-top: 0; }
+.card > :last-child { margin-bottom: 0; }
+
+.griglia-kpi { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-bottom: 12px; }
+@media (min-width: 560px) { .griglia-kpi { grid-template-columns: repeat(4, 1fr); } }
+
+.kpi {
+  background: var(--superficie); border: 1px solid var(--bordo);
+  border-radius: var(--raggio); padding: 12px; text-align: center;
+  box-shadow: var(--ombra);
+}
+.kpi-valore { font-size: 1.7rem; font-weight: 700; line-height: 1.1; }
+.kpi-etichetta { font-size: .74rem; color: var(--testo-tenue); text-transform: uppercase; letter-spacing: .4px; }
+.kpi.rosso .kpi-valore { color: var(--rosso); }
+.kpi.ambra .kpi-valore { color: var(--ambra); }
+.kpi.verde .kpi-valore { color: var(--verde); }
+
+/* ------------------------------------------------------------- controlli -- */
+.riga { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.riga-fine { justify-content: flex-end; }
+
+button, input, select, textarea {
+  font: inherit; color: inherit;
+}
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 46px; padding: 10px 16px;
+  border-radius: 10px; border: 1px solid var(--bordo);
+  background: var(--superficie); color: var(--testo);
+  font-weight: 600; cursor: pointer;
+  touch-action: manipulation;
+}
+.btn:active { transform: translateY(1px); }
+.btn-primario { background: var(--rosso); border-color: var(--rosso); color: #fff; }
+.btn-ok { background: var(--verde); border-color: var(--verde); color: #fff; }
+.btn-ko { background: var(--ambra); border-color: var(--ambra); color: #fff; }
+/* Il rosso è già del pulsante primario: «Elimina» usa un bordo rosso su fondo
+   chiaro, così non si confonde con «Salva» in un foglio dove stanno vicini. */
+.btn-pericolo { border-color: var(--rosso); color: var(--rosso); background: var(--superficie); }
+.btn-blocco { width: 100%; }
+.btn-piccolo { min-height: 38px; padding: 6px 12px; font-size: .85rem; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+
+.icon-btn {
+  border: 0; background: transparent; font-size: 1.25rem;
+  width: 44px; height: 44px; border-radius: 999px; cursor: pointer;
+}
+
+label { display: block; font-size: .8rem; font-weight: 600; color: var(--testo-tenue); margin: 10px 0 4px; }
+/* L'ASTERISCO degli obbligatori (23/09/2026): sulla riga del campo, e lo mette
+   chi sa che il campo è obbligatorio ADESSO — la classe si accende e si spegne
+   con i dati (scegliere «schiuma» rende obbligatorio il serbatoio). */
+.campo-obbligatorio > label::after { content: ' *'; color: var(--rosso); font-weight: 700; }
+.legenda-obbligatori { margin: 6px 0 2px; }
+/* La data a tre menù: giorno e mese stretti, l'anno per ultimo. Su un telefono
+   stanno su una riga sola. */
+.campo-data-menu { display: grid; grid-template-columns: 1.3fr 1.5fr 1.3fr; gap: 6px; }
+.campo-data-menu select { min-width: 0; }
+.nuovo-presidio-errori { margin-top: 14px; }
+
+input[type="text"], input[type="search"], input[type="number"], input[type="date"],
+input[type="password"], select, textarea {
+  width: 100%; min-height: 46px; padding: 10px 12px;
+  border: 1px solid var(--bordo); border-radius: 10px;
+  background: var(--superficie);
+}
+textarea { min-height: 84px; resize: vertical; }
+
+.campi { display: grid; gap: 0; }
+@media (min-width: 560px) { .campi-2 { grid-template-columns: 1fr 1fr; gap: 0 12px; } }
+
+/* L'intestazione dei presidi NON resta incollata, a NESSUNA larghezza
+   (operatore, 17/09/2026). Prima era fissa su schermo largo, perché «lì lo
+   spazio c'è»: ma lo spazio disponibile non è una ragione per occuparlo con
+   comandi che si usano una volta ogni tanto, e chi lavora da scrivania scorre
+   come chi lavora col pollice. Quello che serve sempre — avanzamento del giro e
+   «indietro» — sta nella fascia rossa, che resta fissa davvero. */
+.cerca-wrap { position: static; background: var(--sfondo); padding: 4px 0 6px; margin: -8px 0 8px; }
+.cerca-riga { display: flex; gap: 8px; margin-top: 4px; }
+.cerca-riga input { flex: 1; }
+/* Un po' d'aria fra la riga della ricerca e i tre pulsanti: attaccati si leggono
+   come un blocco solo. Fino al 19/09/2026 questa riga stava dentro
+   `@media (max-width: 720px)`, quindi lo spazio c'era sul telefono e NON sul
+   desktop — che è l'unico posto dove nessuno di noi guardava. */
+.cerca-wrap .interruttore { margin-top: 10px; }
+
+.filtri { display: flex; gap: 6px; overflow-x: auto; padding: 8px 0 2px; -webkit-overflow-scrolling: touch; }
+.filtro {
+  flex: 0 0 auto; padding: 7px 13px; border-radius: 999px;
+  border: 1px solid var(--bordo); background: var(--superficie);
+  font-size: .82rem; font-weight: 600; cursor: pointer; white-space: nowrap; min-height: 38px;
+}
+.filtro[aria-pressed="true"] { background: var(--rosso); border-color: var(--rosso); color: #fff; }
+
+/* I filtri che si combinano sono CASELLE, non pastiglie: due indipendenti, e la
+   casella lo dice senza doverlo scrivere. Tutta la riga è il bersaglio. */
+.filtro-caselle { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 8px; }
+.casella-filtro {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 42px;
+  padding: 6px 12px; border: 1px solid var(--bordo); border-radius: 10px;
+  background: var(--superficie); font-size: .85rem; font-weight: 600; cursor: pointer;
+}
+.casella-filtro input { width: 20px; height: 20px; accent-color: var(--rosso); }
+.casella-filtro.attiva { border-color: var(--rosso); color: var(--rosso); background: var(--rosso-chiaro); }
+
+/* La scelta cercabile (tipologia del nuovo presidio): si scrive due lettere e
+   restano le voci che le contengono. Una tendina di sistema con ventidue voci, su
+   un telefono, copre il foglio da cui è partita. */
+.scelta-cercabile { display: block; }
+.scelta-fatta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.scelta-fatta-testo {
+  flex: 1; min-width: 0; padding: 10px 12px; border: 1px solid var(--bordo);
+  border-radius: 10px; background: var(--superficie); font-weight: 600;
+}
+.scelta-voci { display: flex; flex-direction: column; gap: 4px; margin-top: 6px;
+  /* Scorre invece di troncare: l'elenco mostra TUTTE le tipologie (22), e su un
+     telefono devono starci senza che il modulo sotto diventi irraggiungibile. */
+  max-height: 46vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.scelta-voce {
+  display: flex; align-items: center; gap: 8px; text-align: left;
+  min-height: 44px; padding: 8px 12px; border: 1px solid var(--bordo);
+  border-radius: 10px; background: var(--superficie); font: inherit; cursor: pointer;
+}
+.scelta-voce.attiva { border-color: var(--rosso); color: var(--rosso); font-weight: 700; }
+
+/* ------------------------------------------------------------- elenchi --- */
+.elenco { list-style: none; margin: 0; padding: 0; }
+
+.voce {
+  display: flex; gap: 10px; align-items: flex-start;
+  width: 100%; text-align: left;
+  background: var(--superficie); border: 1px solid var(--bordo);
+  border-radius: var(--raggio); padding: 12px; margin-bottom: 8px;
+  cursor: pointer; box-shadow: var(--ombra);
+}
+.voce-ico { font-size: 1.4rem; line-height: 1.2; flex: 0 0 auto; }
+.voce-corpo { flex: 1; min-width: 0; }
+.voce-titolo { font-weight: 700; font-size: .95rem; overflow-wrap: anywhere; }
+.voce-sotto { font-size: .82rem; color: var(--testo-tenue); overflow-wrap: anywhere; }
+.voce-tag { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+
+.tag {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: .7rem; font-weight: 700; padding: 3px 8px; border-radius: 999px;
+  background: var(--grigio-200); color: var(--grigio-700);
+  text-transform: uppercase; letter-spacing: .3px;
+}
+.tag-rosso { background: var(--rosso-chiaro); color: var(--rosso); }
+.tag-ambra { background: var(--ambra-chiaro); color: var(--ambra); }
+.tag-verde { background: var(--verde-chiaro); color: var(--verde); }
+/* Grigio e non ambra: segnala una riserva sul dato, non un problema del
+   presidio. In ambra si confonderebbe con "scade presto", che l'operatore
+   deve poter distinguere a colpo d'occhio mentre cammina. */
+.tag-grigio { background: var(--grigio-chiaro, #eceff1); color: var(--testo-tenue, #607d8b); }
+.tag-blu   { background: var(--blu-chiaro); color: var(--blu); }
+
+.barra-stato { width: 5px; border-radius: 3px; align-self: stretch; flex: 0 0 auto; background: var(--grigio-300); }
+.barra-stato.ko { background: var(--rosso); }
+.barra-stato.attenzione { background: var(--ambra); }
+.barra-stato.ok { background: var(--verde); }
+
+.vuoto { text-align: center; color: var(--testo-tenue); padding: 32px 16px; }
+.vuoto-ico { font-size: 2.4rem; display: block; margin-bottom: 8px; }
+
+/* --------------------------------------------------------------- tabbar -- */
+.tabbar {
+  /* Ultima riga della colonna, non più `position: fixed`: vedi il blocco su
+     `body`. Un elemento che non è fisso non può disancorarsi. */
+  flex: 0 0 auto; z-index: 40;
+  display: grid; grid-template-columns: repeat(7, 1fr);
+  background: var(--superficie); border-top: 1px solid var(--bordo);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.tab {
+  position: relative; border: 0; background: transparent; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  padding: 7px 2px 8px; font-size: .68rem; font-weight: 600; color: var(--testo-tenue);
+  min-height: 56px;
+}
+.tab-ico { font-size: 1.2rem; line-height: 1; }
+.tab.attivo { color: var(--rosso); }
+.tab.attivo .tab-ico { transform: scale(1.08); }
+
+.badge {
+  position: absolute; top: 3px; right: 50%; transform: translateX(22px);
+  min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+  background: var(--rosso); color: #fff; font-size: .65rem; line-height: 18px; text-align: center;
+}
+.badge-warn { background: var(--ambra); }
+
+/* Una pastiglia che si TOCCA lo deve sembrare: gli allarmi della fascia rossa
+   portano alla loro spiegazione, e una pastiglia inerte non si prova nemmeno. */
+.pill-btn { border: 0; font: inherit; cursor: pointer; text-decoration: underline;
+  text-underline-offset: 2px; }
+
+/* ---------------------------------------------------------------- sheet -- */
+.sheet-backdrop { position: fixed; inset: 0; background: rgb(0 0 0 / 45%); z-index: 50; }
+
+.sheet {
+  position: fixed; z-index: 60; inset: auto 0 0 0;
+  max-height: 92dvh; display: flex; flex-direction: column;
+  background: var(--superficie);
+  border-radius: 18px 18px 0 0; box-shadow: var(--ombra-alta);
+  animation: sali .18s ease-out;
+}
+@keyframes sali { from { transform: translateY(14px); opacity: .6; } to { transform: none; opacity: 1; } }
+
+@media (min-width: 720px) {
+  .sheet { inset: 5vh auto 5vh 50%; transform: translateX(-50%); width: 680px; border-radius: 18px; }
+}
+
+.sheet-head {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  padding: 12px 8px 12px 16px; border-bottom: 1px solid var(--bordo);
+  position: sticky; top: 0; background: var(--superficie); border-radius: 18px 18px 0 0;
+}
+.sheet-head h2 { margin: 0; font-size: 1rem; overflow-wrap: anywhere; }
+.sheet-body { overflow-y: auto; padding: 14px 16px calc(20px + env(safe-area-inset-bottom, 0px)); -webkit-overflow-scrolling: touch; }
+
+/* --------------------------------------------------------------- schede -- */
+.dati { display: grid; grid-template-columns: minmax(96px, 34%) 1fr; gap: 6px 12px; font-size: .88rem; }
+.dati dt { color: var(--testo-tenue); font-weight: 600; }
+.dati dd { margin: 0; overflow-wrap: anywhere; }
+
+.azioni-rapide { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 12px 0; }
+
+.storico { border-left: 2px solid var(--bordo); padding-left: 12px; margin-left: 4px; }
+.storico-voce { position: relative; padding: 8px 0; font-size: .85rem; }
+.storico-voce::before {
+  content: ''; position: absolute; left: -18px; top: 14px;
+  width: 9px; height: 9px; border-radius: 999px; background: var(--grigio-300);
+}
+.storico-voce.ok::before { background: var(--verde); }
+.storico-voce.ko::before { background: var(--rosso); }
+
+.avviso {
+  border-left: 4px solid var(--ambra); background: var(--ambra-chiaro);
+  padding: 10px 12px; border-radius: 8px; font-size: .86rem; margin: 10px 0;
+}
+.avviso-rosso { border-left-color: var(--rosso); background: var(--rosso-chiaro); }
+.avviso-verde { border-left-color: var(--verde); background: var(--verde-chiaro); }
+.avviso-blu   { border-left-color: var(--blu); background: var(--blu-chiaro); }
+.avviso ul { margin: 6px 0 0; padding-left: 18px; }
+.avviso code { font-size: .8em; overflow-wrap: anywhere; }
+
+.dropzona {
+  border: 2px dashed var(--bordo); border-radius: var(--raggio);
+  padding: 26px 16px; text-align: center; color: var(--testo-tenue);
+  background: var(--grigio-50);
+}
+.dropzona.sopra { border-color: var(--rosso); background: var(--rosso-chiaro); color: var(--rosso); }
+
+.mini { font-size: .78rem; color: var(--testo-tenue); }
+.mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: .78rem; overflow-wrap: anywhere; }
+
+.tabellina { width: 100%; border-collapse: collapse; font-size: .84rem; }
+.tabellina th, .tabellina td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--bordo); }
+.tabellina th { color: var(--testo-tenue); font-size: .74rem; text-transform: uppercase; letter-spacing: .3px; }
+.tabellina td.num, .tabellina th.num { text-align: right; font-variant-numeric: tabular-nums; }
+.scroll-x { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+/* ---------------------------------------------------------------- toast -- */
+.toast-wrap {
+  position: fixed; left: 50%; transform: translateX(-50%);
+  /* ⛔ IN ALTO, sotto la fascia rossa (26/09/2026, dall'operatore: «le conferme
+     vanno in alto, non in basso»). In basso stavano sopra i pulsanti che si
+     toccano di più — «Sposta qui», i comandi in fondo ai fogli, la barra delle
+     schede — e li coprivano proprio mentre servivano. In alto non coprono più
+     nemmeno la barra «Nuova versione», che sta in basso: prima serviva
+     `--altezza-aggiornamento` per scansarla. */
+  top: calc(env(safe-area-inset-top, 0px) + var(--altezza-topbar) + 6px); z-index: 80;
+  display: flex; flex-direction: column; gap: 8px; width: min(92vw, 460px);
+}
+.toast {
+  background: var(--grigio-900); color: #fff; padding: 6px 6px 6px 14px;
+  border-radius: 10px; box-shadow: var(--ombra-alta); font-size: .88rem;
+  animation: scendi .15s ease-out;
+  display: flex; align-items: center; gap: 6px;
+}
+.toast-testo { flex: 1 1 auto; padding: 5px 0; }
+/* La ✕: bersaglio da pollice, chiara sul fondo del messaggio. */
+.toast-chiudi {
+  flex: 0 0 auto; min-width: 40px; min-height: 40px; border: 0; border-radius: 8px;
+  background: rgb(255 255 255 / 16%); color: inherit; font: inherit; font-size: 1rem; cursor: pointer;
+}
+@keyframes scendi { from { transform: translateY(-8px); opacity: 0; } }
+.toast-ok { background: var(--verde); }
+.toast-ko { background: var(--rosso); }
+.toast-warn { background: var(--ambra); }
+/* Il messaggio che si annulla: il TESTO è il pulsante che annulla, la ✕ accanto chiude. */
+.toast-corpo { flex: 1 1 auto; text-align: left; border: 0; background: transparent; font: inherit; color: #fff;
+  cursor: pointer; padding: 5px 0; }
+.toast-annulla { font-weight: 700; text-decoration: underline; white-space: nowrap; }
+/* La DOMANDA: chiara dove gli altri messaggi sono pieni, con un bordo spesso e
+   due pulsanti. Non si confonde con un avviso che se ne va da solo, perché non
+   se ne va da solo. */
+.toast-conferma {
+  background: var(--superficie); color: var(--testo); padding: 11px 14px; align-items: stretch;
+  border: 2px solid var(--blu); display: flex; flex-direction: column; gap: 8px;
+}
+.toast-conferma-testo { font-weight: 600; }
+.toast-conferma-scelte { display: flex; gap: 8px; justify-content: flex-end; }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* ------------------------------------------------------- navigazione ------ */
+.briciole {
+  display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+  margin: 0 0 6px; font-size: .82rem;
+}
+.briciola {
+  border: 1px solid var(--bordo); background: var(--superficie); border-radius: 999px;
+  padding: 7px 12px; font-size: .82rem; font-weight: 600; min-height: 38px; cursor: pointer;
+}
+/* «Su a X» è un pulsante e deve sembrarlo: bordo pieno, freccia e la parola. Una
+   catena di chip tutti uguali si legge come un titolo, e nessuno la tocca. */
+.briciola-su { border-color: var(--blu); color: var(--blu); background: var(--blu-chiaro); }
+.briciola-su-etichetta { font-weight: 500; }
+.briciola-antenato { color: var(--testo-tenue); font-weight: 500; }
+.briciola-qui-etichetta { font-size: .72rem; color: var(--testo-tenue); text-transform: uppercase; letter-spacing: .04em; }
+.briciola-attiva { background: var(--rosso); color: #fff; cursor: default; border-color: var(--rosso); }
+.briciola-sep { color: var(--testo-tenue); }
+
+/* Il pallino con il numero di filtri attivi sul pulsante «Filtri». */
+.pallino-conta {
+  display: inline-block; min-width: 18px; margin-left: 6px; padding: 0 5px;
+  border-radius: 999px; background: var(--rosso); color: #fff;
+  font-size: .72rem; font-weight: 700; text-align: center;
+}
+/* Su schermo largo i filtri restano in pagina; su telefono stanno nel foglio. */
+/* L'interruttore anni / mesi accanto a un campo numerico. */
+.interruttore-unita { margin-top: 6px; max-width: 220px; }
+.interruttore-unita .interruttore-voce { padding: 6px 10px; font-size: .8rem; min-height: 38px; }
+
+/* La forma compatta è una RIGA, non un riquadro: niente bordo, niente sfondo,
+   niente ombra — su un telefono ogni riquadro in testa costa un centimetro di
+   elenco. La forma intera resta nel foglio «Filtri» e nel riepilogo. */
+.barra-giro.barra-giro-compatta {
+  padding: 2px 0 4px; border: 0; background: none; box-shadow: none; margin: 0;
+}
+.barra-giro.barra-giro-compatta .barra-giro-testo { font-size: .8rem; }
+.barra-giro.barra-giro-compatta .barra-giro-ambito { display: block; color: var(--testo-tenue); font-size: .72rem; }
+@media (max-width: 720px) {
+  .solo-largo { display: none; }
+
+  /* Gli antenati oltre il padre costano una riga intera su un telefono: si sale
+     con «Su a …», un livello per volta, che è il gesto che si fa comunque. */
+  .briciola-antenato { display: none; }
+}
+
+.voce-freccia {
+  align-self: center; color: var(--testo-tenue); font-size: 1.4rem;
+  flex: 0 0 auto; padding-left: 4px;
+}
+
+.avanzamento {
+  height: 6px; border-radius: 3px; background: var(--grigio-200);
+  overflow: hidden; margin: 6px 0 2px;
+}
+.avanzamento-riemp { height: 100%; background: var(--verde); border-radius: 3px; }
+
+/* Un campo vuoto che conta: si mostra apposta, con il perché accanto. */
+.mancante {
+  color: var(--ambra); font-style: italic; font-weight: 600; font-size: .85em;
+}
+
+details summary { cursor: pointer; padding: 6px 0; }
+
+/* --------------------------------------------------------------------------
+   Porta d'ingresso (parola d'accesso + identità operatore)
+   -------------------------------------------------------------------------- */
+.porta {
+  position: fixed; inset: 0; z-index: 100;
+  background: var(--sfondo, #f6f7f9);
+  overflow-y: auto;
+  /* padding-bottom generoso: su iPhone la tastiera copre metà schermo e il
+     bottone "Entra" finisce sotto, irraggiungibile senza chiudere la tastiera */
+  padding: max(24px, env(safe-area-inset-top)) 16px 45vh;
+  display: flex; justify-content: center; align-items: flex-start;
+}
+.porta-box { width: 100%; max-width: 420px; }
+.porta-titolo { font-size: 1.5rem; margin: 8px 0 2px; font-weight: 500; }
+.porta-titolo b { font-weight: 700; }
+.porta-mark { font-size: 1.4rem; }
+.porta-sub { margin: 0 0 22px; color: var(--testo-tenue, #607d8b); font-size: .9rem; }
+.porta .campo { display: block; margin-bottom: 14px; }
+.porta .campo-etichetta {
+  display: block; font-size: .82rem; font-weight: 600;
+  color: var(--testo-tenue, #607d8b); margin-bottom: 5px;
+}
+.porta .campo input {
+  width: 100%; box-sizing: border-box;
+  /* 16px esatti: sotto questa soglia iOS ingrandisce la pagina al focus e
+     l'operatore si ritrova il modulo fuori schermo */
+  font-size: 16px; padding: 12px 13px;
+  border: 1px solid var(--bordo, #cfd8dc); border-radius: 10px;
+  background: var(--carta, #fff); color: inherit;
+}
+.porta .campo input:focus {
+  outline: 2px solid var(--primario, #b91c1c); outline-offset: 1px; border-color: transparent;
+}
+.porta-nota {
+  font-size: .8rem; line-height: 1.5; margin: 4px 0 16px; padding: 12px 13px;
+  border-radius: 10px; background: var(--carta, #fff);
+  border: 1px solid var(--bordo, #cfd8dc); color: var(--testo-tenue, #546e7a);
+}
+.porta-errore {
+  font-size: .85rem; font-weight: 600; margin-bottom: 12px;
+  padding: 10px 12px; border-radius: 10px;
+  background: var(--rosso-chiaro, #ffebee); color: var(--rosso, #c62828);
+}
+
+/* --------------------------------------------------------------------------
+   Filtri: navigazione a due livelli invece di una lista piatta di categorie
+   -------------------------------------------------------------------------- */
+.filtro-barra {
+  display: flex; gap: 8px; overflow-x: auto; padding: 2px 0 8px;
+  -webkit-overflow-scrolling: touch; scrollbar-width: none;
+}
+.filtro-barra::-webkit-scrollbar { display: none; }
+.filtro-riga {
+  display: flex; align-items: center; gap: 10px; width: 100%;
+  padding: 11px 12px; border-radius: 12px; text-align: left;
+  border: 1px solid var(--bordo, #cfd8dc); background: var(--carta, #fff);
+  color: inherit; font: inherit; cursor: pointer;
+}
+.filtro-riga[aria-pressed="true"] {
+  border-color: var(--primario, #b91c1c);
+  background: var(--rosso-chiaro, #ffebee);
+}
+.filtro-riga .f-ico { font-size: 1.25rem; line-height: 1; flex: 0 0 auto; }
+.filtro-riga .f-testo { flex: 1 1 auto; min-width: 0; }
+.filtro-riga .f-nome {
+  display: block; font-weight: 600; font-size: .93rem;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.filtro-riga .f-sotto { display: block; font-size: .78rem; color: var(--testo-tenue, #78909c); }
+.filtro-riga .f-conta {
+  flex: 0 0 auto; font-variant-numeric: tabular-nums; font-weight: 700;
+  font-size: .85rem; padding: 3px 9px; border-radius: 999px;
+  background: var(--sfondo, #eceff1); color: var(--testo-tenue, #546e7a);
+}
+.filtro-riga[aria-pressed="true"] .f-conta {
+  background: var(--primario, #b91c1c); color: #fff;
+}
+.filtro-elenco { display: grid; gap: 8px; margin: 0 0 12px; padding: 0; list-style: none; }
+
+/* Riga di contesto: dice quale filtro è attivo e come toglierlo. Senza, un
+   elenco vuoto si legge come "non c'è niente" invece che "stai guardando una
+   fetta". */
+.contesto {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin: 0 0 10px; padding: 9px 11px; border-radius: 10px;
+  background: var(--ambra-chiaro, #fff8e1); font-size: .85rem;
+}
+.contesto b { font-weight: 700; }
+.contesto button {
+  margin-left: auto; border: 0; background: transparent; cursor: pointer;
+  font: inherit; font-weight: 700; text-decoration: underline;
+  color: var(--primario, #b91c1c); padding: 2px 4px;
+}
+
+/* Il titolo è un pulsante (torna al riepilogo) ma non deve sembrarlo: chi non
+   scopre che è cliccabile non perde niente, chi lo tocca torna a casa. */
+button.brand {
+  border: 0; background: transparent; padding: 0; margin: 0;
+  font: inherit; color: inherit; cursor: pointer; text-align: left;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+button.brand:active { opacity: .6; }
+
+/* Caselle di scelta delle tipologie del giro. Righe intere e non chip: su un
+   telefono un quadratino di 13px accanto a un testo lungo si manca, e mancarlo
+   significa iniziare il giro con il perimetro sbagliato. */
+.caselle { display: grid; gap: 6px; margin: 8px 0 4px; }
+.casella {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 10px;
+  border: 1px solid var(--bordo, #cfd8dc); background: var(--carta, #fff);
+  cursor: pointer;
+}
+.casella input { width: 20px; height: 20px; flex: 0 0 auto; accent-color: var(--primario, #b91c1c); }
+.casella-testo { flex: 1 1 auto; font-size: .92rem; }
+.casella:has(input:checked) {
+  border-color: var(--primario, #b91c1c); background: var(--rosso-chiaro, #ffebee);
+}
+
+/* Chip dei filtri attivi: ognuno si toglie da solo. Con più selezioni, dover
+   azzerare tutto per togliere la terza è il motivo per cui non si usano. */
+.contesto-chip { flex-wrap: wrap; gap: 6px; }
+.chip-filtro {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 5px 8px 5px 10px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--primario, #b91c1c); background: var(--carta, #fff);
+  color: inherit; font: inherit; font-size: .82rem; margin: 0;
+}
+.chip-filtro .chip-conta {
+  font-variant-numeric: tabular-nums; font-weight: 700; font-size: .75rem;
+  color: var(--testo-tenue, #78909c);
+}
+.chip-filtro .chip-x { font-size: .8rem; color: var(--primario, #b91c1c); font-weight: 700; }
+.chip-filtro:active { opacity: .6; }
+
+/* Sotto-schede (Riepilogo / Elenco) */
+.sottoschede {
+  display: flex; gap: 4px; margin: 0 0 12px;
+  background: var(--sfondo, #eceff1); padding: 4px; border-radius: 12px;
+}
+.sottoscheda {
+  flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: 6px;
+  border: 0; background: transparent; cursor: pointer;
+  padding: 9px 8px; border-radius: 9px; font: inherit; font-size: .88rem;
+  font-weight: 600; color: var(--testo-tenue, #607d8b);
+}
+.sottoscheda.attiva {
+  background: var(--carta, #fff); color: var(--primario, #b91c1c);
+  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+}
+.sottoscheda-n {
+  font-variant-numeric: tabular-nums; font-size: .75rem; font-weight: 700;
+  padding: 1px 7px; border-radius: 999px;
+  background: var(--sfondo, #eceff1); color: var(--testo-tenue, #607d8b);
+}
+.sottoscheda.attiva .sottoscheda-n { background: var(--rosso-chiaro, #ffebee); }
+
+.elenco-cluster .voce { padding-right: 10px; }
+.cluster-n {
+  flex: 0 0 auto; font-variant-numeric: tabular-nums; font-weight: 700;
+  font-size: 1.05rem; color: var(--testo, #263238);
+}
+
+/* Barra di aggiornamento: RESTA finché non la si tocca. Un avviso che sparisce
+   da solo dopo dodici secondi si legge quando è già andato via, e il risultato
+   è che si pubblica una versione nuova e sul telefono non cambia niente. */
+.aggiornamento {
+  position: fixed; z-index: 45;
+  /* `--altezza-tabbar` contiene GIÀ l'area sicura: sommarla di nuovo alzava la
+     barra di un centimetro sui telefoni con il notch. */
+  left: 8px; right: 8px; bottom: calc(var(--altezza-tabbar) + 8px);
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 10px 10px 14px; border-radius: 12px;
+  background: var(--testo, #263238); color: #fff;
+  box-shadow: 0 6px 20px rgb(0 0 0 / 28%);
+  font-size: .88rem;
+}
+.agg-testo { flex: 1 1 auto; }
+.agg-btn {
+  flex: 0 0 auto; border: 0; cursor: pointer; font: inherit; font-weight: 700;
+  padding: 8px 14px; border-radius: 9px;
+  background: #fff; color: var(--primario, #b91c1c);
+}
+.agg-chiudi {
+  flex: 0 0 auto; border: 0; background: transparent; color: #fff;
+  cursor: pointer; font-size: 1rem; padding: 4px 6px; opacity: .75;
+}
+
+/* Categoria senza presidi nel perimetro corrente: si mostra lo stesso, perché
+   nasconderla significa che l'operatore non sa che esiste — nel parco mancano
+   del tutto idranti e gruppi elettrogeni, e chi ne trova uno non troverebbe
+   nemmeno dove metterlo. */
+.casella-vuota { opacity: .55; }
+.casella-vuota .f-conta { background: transparent; }
+
+/* --------------------------------------------------------------------------
+   Respiro verticale fra i blocchi
+   --------------------------------------------------------------------------
+   Riga di filtro, chip, KPI e schede stavano attaccati: "Tutte le tipologie /
+   18 · tocca per filtrare / 458" seguito subito da "32 scadenze aperte / 0
+   scadute" si legge come un unico blocco di numeri, e non si capisce dove
+   finisce il filtro e dove comincia il riepilogo. Lo spazio qui non è
+   decorazione: è quello che separa due informazioni diverse. */
+.filtro-riga { margin-bottom: 10px; }
+.filtro-elenco > li:last-child .filtro-riga { margin-bottom: 0; }
+.contesto { margin-bottom: 12px; }
+.filtro-barra { margin-bottom: 10px; }
+.griglia-kpi { margin: 4px 0 14px; }
+.cerca-wrap { margin-bottom: 10px; }
+.sottoschede + .filtro-barra,
+.sottoschede + .filtro-riga { margin-top: 2px; }
+.card + .card { margin-top: 12px; }
+.elenco { margin-top: 4px; }
+
+/* Interruttore a due stati: resta fermo e mostra entrambe le alternative con il
+   loro conteggio. Un chip in una striscia che scorre esce dalla vista, e allora
+   non si vede più in che modo si sta guardando l'elenco. */
+/* Ogni voce ha il suo BORDO (operatore, 16/09/2026): prima le inattive erano
+   testo grigio su fondo grigio, senza contorno, e non si capiva che fossero
+   toccabili — si vedeva una voce accesa e due scritte accanto. Adesso sono tre
+   pulsanti, e quello attivo è pieno invece che solo più chiaro. */
+.interruttore {
+  display: flex; gap: 6px; margin: 0 0 10px;
+  background: none; padding: 0; border-radius: 12px;
+}
+.interruttore-voce {
+  flex: 1 1 0; display: flex; align-items: center; justify-content: center; gap: 6px;
+  border: 1px solid var(--bordo); background: var(--superficie); cursor: pointer; font: inherit;
+  padding: 10px 8px; border-radius: 10px; font-size: .86rem; font-weight: 600;
+  color: var(--testo);
+  /* 44px: sotto questa altezza un pollice sbaglia bersaglio */
+  min-height: 44px;
+}
+.interruttore-voce:active { background: var(--grigio-100); }
+.interruttore-voce.attiva {
+  background: var(--rosso); border-color: var(--rosso); color: #fff;
+  box-shadow: 0 1px 3px rgb(0 0 0 / 12%);
+}
+.interruttore-n {
+  font-variant-numeric: tabular-nums; font-size: .74rem; font-weight: 700;
+  padding: 1px 7px; border-radius: 999px;
+  background: var(--sfondo, #eceff1); color: var(--testo-tenue, #607d8b);
+}
+.interruttore-voce.attiva .interruttore-n { background: rgb(255 255 255 / 25%); color: #fff; }
+/* ⛔ Quattro voci del giro su un telefono (23/09/2026, con «Sospesi»): a 375 px
+   «Da fare» andava a capo e la fascia passava da 44 a 62 px — misurato nel
+   browser. Sotto i 420 px il numero va SOTTO l'etichetta, e niente va a capo. */
+@media (max-width: 420px) {
+  .interruttore-giro { gap: 4px; }
+  .interruttore-giro .interruttore-voce {
+    flex-direction: column; gap: 2px; padding: 5px 2px; white-space: nowrap; font-size: .82rem;
+  }
+  .interruttore-giro .interruttore-n { padding: 0 6px; }
+}
+
+/* --------------------------------------------------------------------------- */
+/* Grafici                                                                      */
+/* --------------------------------------------------------------------------- */
+/*
+ * Dimensioni pensate per un telefono tenuto con una mano sola: la ciambella sta
+ * accanto alla legenda su schermo largo e sopra su schermo stretto, e le righe
+ * toccabili hanno un'area di 44px — sotto quella soglia si sbaglia bersaglio.
+ */
+.grafico-ciambella {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  color: var(--testo);
+}
+.legenda { list-style: none; margin: 0; padding: 0; }
+.grafico-ciambella .legenda { flex: 1; min-width: 150px; }
+.legenda li {
+  display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: .88rem;
+}
+.legenda-pallino {
+  width: 11px; height: 11px; border-radius: 3px; flex: none;
+}
+.legenda-testo { color: var(--testo-tenue); }
+.grafico-ciambella .legenda-testo { flex: 1; }
+
+/* Legenda su una riga sola, sopra le barre: sta sempre in vista, anche
+   scorrendo un elenco lungo di righe. */
+.legenda-riga {
+  display: flex; flex-wrap: wrap; gap: 4px 14px; margin-bottom: 6px;
+}
+.legenda-riga li { padding: 0; }
+
+.grafico-barre { list-style: none; margin: 0; padding: 0; }
+.grafico-barre > li { margin: 0 0 6px; }
+.barra-tocca {
+  display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+  background: none; border: 0; padding: 8px 4px; margin: 0; border-radius: 8px;
+  min-height: 44px; cursor: pointer; color: inherit; font: inherit;
+}
+.barra-tocca:active { background: var(--grigio-100); }
+.barra-tocca .barra-corpo { flex: 1; min-width: 0; }
+.barra-freccia { color: var(--testo-tenue); font-size: 1.3rem; flex: none; }
+.barra-corpo { display: block; }
+.barra-riga { display: flex; align-items: baseline; gap: 8px; }
+.barra-etichetta {
+  flex: 1; min-width: 0; font-size: .92rem; font-weight: 500;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.barra-numero { font-variant-numeric: tabular-nums; font-size: .95rem; }
+.barra-esterna {
+  height: 10px; background: var(--grigio-100); border-radius: 999px;
+  overflow: hidden; margin-top: 5px;
+}
+.barra-piena { display: flex; height: 100%; border-radius: 999px; overflow: hidden; }
+/* Una quota che esiste deve vedersi: 2 su 430 è mezzo pixel, e mezzo pixel
+   scompare. Il numero resta comunque scritto sotto la barra. */
+.barra-quota { min-width: 3px; }
+.barra-dettaglio { margin-top: 4px; }
+.barra-punto { color: var(--grigio-300); }
+
+/* Tasto «indietro» in barra: compare solo quando c'è dove tornare. Un tasto
+   sempre presente ma inerte su metà delle schermate insegna a non usarlo. */
+.btn-indietro {
+  font-size: 1.6rem; line-height: 1; font-weight: 600;
+  margin-right: -4px; flex: none;
+}
+
+/* --------------------------------------------------------------------------- */
+/* Esecuzione dei controlli: un piano per riga                                  */
+/* --------------------------------------------------------------------------- */
+/*
+ * Pensato per una mano sola con i guanti: i due pulsanti dell'esito sono
+ * larghi metà schermo, distanti fra loro, e portano il SEGNO oltre al colore —
+ * ✓ e ✕ si distinguono anche in bianco e nero, rosso e verde no.
+ */
+.piani-elenco { display: grid; gap: 10px; }
+
+.piano-riga {
+  border: 1px solid var(--bordo); border-radius: var(--raggio);
+  padding: 12px; background: var(--superficie);
+  border-left: 4px solid var(--grigio-300);
+}
+.piano-riga.ko { border-left-color: var(--rosso); }
+.piano-riga.attenzione { border-left-color: var(--ambra); }
+.piano-riga.ok { border-left-color: var(--verde); }
+
+.piano-testa { display: flex; align-items: baseline; gap: 8px; }
+.piano-nome { flex: 1; font-weight: 600; line-height: 1.25; }
+.piano-freq { color: var(--testo-tenue); font-size: .82rem; white-space: nowrap; }
+
+.piano-azioni { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.piano-fatto {
+  display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  background: var(--verde-chiaro); color: var(--verde);
+  border-radius: 8px; padding: 8px 10px; font-size: .88rem; font-weight: 600;
+  margin-bottom: 6px;
+}
+.piano-fatto .btn { font-weight: 500; }
+.piano-non-eseguito { background: var(--ambra-chiaro); color: var(--ambra); }
+
+.btn-esito {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; font-weight: 600;
+}
+.esito-segno { font-size: 1.2rem; line-height: 1; }
+.btn-grande { min-height: 56px; font-size: 1.02rem; }
+.azioni-esito { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+/* Un pulsante che non si può premere deve DIRSI spento, non solo esserlo:
+   sotto c'è scritto perché, e il colore pieno lo farebbe cercare invano. */
+.btn-spento { opacity: .45; filter: saturate(.4); cursor: not-allowed; }
+.btn-esito.scelto { outline: 3px solid var(--blu); outline-offset: 2px; }
+
+.checklist-conta {
+  font-size: .85rem; color: var(--testo-tenue); font-weight: 600;
+  margin-bottom: 6px;
+}
+.elenco-azioni { list-style: none; margin: 0 0 10px; padding: 0; }
+.elenco-azioni > li { border-bottom: 1px solid var(--grigio-100); }
+.elenco-azioni > li:last-child { border-bottom: 0; }
+/* Bersaglio grande: si spunta in piedi, con i guanti, tenendo il telefono
+   con la stessa mano. 44px è il minimo sotto il quale si manca. */
+.casella-grande {
+  display: flex; align-items: flex-start; gap: 12px;
+  min-height: 48px; padding: 10px 2px; cursor: pointer;
+}
+.casella-grande input[type="checkbox"] {
+  width: 26px; height: 26px; flex: none; margin-top: 1px; accent-color: var(--verde);
+}
+.casella-grande .casella-testo { line-height: 1.35; }
+
+.card-piatta { box-shadow: none; border: 1px solid var(--bordo); }
+.box-anomalia {
+  border: 1px solid var(--rosso); background: var(--rosso-chiaro);
+  border-radius: var(--raggio); padding: 12px; margin-top: 12px;
+}
+.dettagli-extra { margin-top: 14px; }
+.dettagli-extra > summary {
+  cursor: pointer; padding: 10px 0; font-size: .9rem; color: var(--testo-tenue);
+}
+.box-non-eseguito {
+  border: 1px solid var(--bordo); background: var(--grigio-50);
+  border-radius: var(--raggio); padding: 12px; margin-top: 10px;
+}
+
+/* Scelta a pulsanti, al posto dei menù a tendina.
+   Bersagli da 44px, tutte le voci visibili insieme, niente ruota di sistema
+   che copra il foglio da cui è partita. */
+.scelte { display: flex; flex-wrap: wrap; gap: 6px; }
+.scelta {
+  min-height: 44px; padding: 8px 14px; border-radius: 999px;
+  border: 1px solid var(--bordo); background: var(--superficie);
+  color: var(--testo); font: inherit; font-size: .9rem; cursor: pointer;
+}
+.scelta:active { background: var(--grigio-100); }
+.scelta-attiva {
+  background: var(--blu); border-color: var(--blu); color: #fff; font-weight: 600;
+}
+
+/* Il verbale di un controllo registrato: che cosa risulta fatto e che cosa no. */
+.elenco-verbale { list-style: none; margin: 0; padding: 0; }
+.elenco-verbale > li {
+  display: flex; gap: 10px; align-items: flex-start;
+  padding: 7px 0; border-bottom: 1px solid var(--grigio-100); font-size: .9rem;
+}
+.elenco-verbale > li:last-child { border-bottom: 0; }
+.elenco-verbale .verbale-segno { flex: none; font-weight: 700; }
+.elenco-verbale .fatta .verbale-segno { color: var(--verde); }
+.elenco-verbale .non-fatta { color: var(--testo-tenue); }
+.elenco-verbale .non-fatta .verbale-segno { color: var(--rosso); }
+.box-annulla {
+  border: 1px solid var(--rosso); background: var(--rosso-chiaro);
+  border-radius: var(--raggio); padding: 12px; margin-top: 10px;
+}
+.piano-fatto-testo { flex: 1; min-width: 0; }
+
+/* Le voci dello storico sono pulsanti: si aprono sul verbale del controllo. */
+.storico-voce-btn {
+  display: block; width: 100%; text-align: left; background: none; border: 0;
+  color: inherit; font: inherit; cursor: pointer; position: relative;
+  min-height: 44px; padding-right: 22px;
+}
+.storico-voce-btn:active { background: var(--grigio-100); }
+.storico-voce-btn .voce-freccia {
+  position: absolute; right: 2px; top: 50%; transform: translateY(-50%);
+  color: var(--testo-tenue);
+}
+
+/* Riga compatta: i controlli in regola, che si aprono ma non si registrano da
+   qui. Niente pulsanti giganti — chi apre quella sezione cerca informazione. */
+.piano-riga-compatta { padding: 0; }
+.piano-tocca {
+  display: flex; align-items: center; gap: 8px; width: 100%; text-align: left;
+  background: none; border: 0; color: inherit; font: inherit; cursor: pointer;
+  padding: 10px 12px; min-height: 44px; border-radius: var(--raggio);
+}
+.piano-tocca:active { background: var(--grigio-100); }
+.piano-corpo { flex: 1; min-width: 0; }
+
+.piano-prossima { font-size: .8rem; font-weight: 500; opacity: .85; }
+/* Che cosa è successo alle scadenze: quella che si chiude e quella che si apre.
+   La seconda in evidenza, perché è quella che si va a cercare. */
+.riquadro-scadenza {
+  margin-top: 12px; padding: 10px 12px; border-radius: var(--raggio);
+  background: var(--blu-chiaro); color: var(--testo);
+}
+
+/* Il pallino dell'elenco: devo fermarmi qui?
+   Colore E simbolo insieme — contro luce rosso e ambra si somigliano, e c'è chi
+   non li distingue affatto. */
+.pallino-controlli {
+  flex: none; width: 22px; height: 22px; border-radius: 50%;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: .8rem; font-weight: 800; line-height: 1; margin-right: 2px;
+  background: var(--grigio-200); color: var(--grigio-700);
+}
+.pallino-controlli.ko { background: var(--rosso); color: #fff; }
+.pallino-controlli.attenzione { background: var(--ambra); color: #fff; }
+.pallino-controlli.ok { background: var(--verde); color: #fff; }
+.pallino-controlli.ignoto { background: var(--grigio-300); color: var(--grigio-700); }
+
+/* Sette schede in una barra da telefono.
+   Sotto i 380px le etichette non ci starebbero a grandezza piena: si stringe il
+   testo, non l'area toccabile. Il bersaglio resta alto quanto la barra — è
+   l'altezza che conta per il pollice, non la larghezza della parola. */
+@media (max-width: 420px) {
+  .tab { font-size: .58rem; letter-spacing: -.01em; }
+  .tab > span:not(.tab-ico):not(.badge) {
+    max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+}
+
+/* --------------------------------------------------------------------------- */
+/* Albero delle ubicazioni                                                      */
+/* --------------------------------------------------------------------------- */
+/*
+ * Rientro contenuto: su uno schermo da 375px, quattro livelli con rientro da
+ * 24px lasciano meno di trecento pixel al testo. Qui il rientro è 14px e la
+ * gerarchia la porta anche la riga verticale, che si vede anche quando il
+ * rientro non basta più.
+ */
+.albero-ramo { position: relative; }
+.albero-figli {
+  margin-left: 14px; padding-left: 10px; border-left: 1px solid var(--bordo);
+}
+.albero-nodo {
+  /* Va a capo a QUALUNQUE larghezza: dal 20/09/2026 il nodo porta righe intere
+     (Naviga, Rileva la posizione) che accanto al nome sarebbero illeggibili. */
+  display: flex; align-items: center; gap: 4px; flex-wrap: wrap; row-gap: 2px;
+  border-bottom: 1px solid var(--grigio-100);
+}
+.albero-tocca {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px;
+  background: none; border: 0; color: inherit; font: inherit; cursor: pointer;
+  text-align: left; padding: 9px 2px; min-height: 44px;
+}
+.albero-tocca:active { background: var(--grigio-100); }
+.albero-freccia {
+  flex: none; width: 14px; text-align: center; color: var(--testo-tenue);
+  font-size: .8rem;
+}
+.albero-ico { flex: none; font-size: 1.05rem; }
+.albero-corpo { flex: 1; min-width: 0; }
+/* Il nome VA A CAPO invece di essere tagliato.
+   Misurato sul telefono dell'operatore (16/09/2026): con i tre comandi sulla
+   stessa riga il nome aveva 90 px e si leggeva «Box d…», «Edific…», «Cam…» —
+   cioè l'unica informazione che serve per scegliere dove andare era l'unica
+   illeggibile. */
+.albero-nome { font-weight: 600; font-size: .93rem; overflow-wrap: anywhere; }
+.albero-impianto > .albero-tocca .albero-nome { font-size: 1rem; }
+.albero-comandi { display: flex; gap: 4px; flex: none; }
+.albero-comandi .btn { padding: 6px 8px; font-size: .72rem; min-height: 36px; }
+
+/* Sotto i 560 px i comandi scendono su una riga loro, allineati sotto il nome e
+   larghi uguali: il nome si prende tutta la riga, e i tre bersagli diventano da
+   pollice invece che da unghia. I rientri si dimezzano, perché a tre livelli di
+   profondità mangiavano un quarto dello schermo. */
+@media (max-width: 560px) {
+  .albero-nodo { flex-wrap: wrap; row-gap: 2px; padding-bottom: 6px; }
+  /* ⚠️ `1 1 0` e non `1 1 100%`: da quando accanto al nome c'è l'icona di
+     «dove si trova», con `100%` quella finirebbe a capo da sola. */
+  .albero-tocca { flex: 1 1 0; min-width: 0; padding: 8px 2px; }
+  .albero-comandi { flex: 1 1 100%; margin-left: 30px; gap: 6px; }
+  .albero-comandi .btn { flex: 1; min-height: 38px; padding: 6px 4px; }
+  .albero-figli { margin-left: 6px; padding-left: 8px; }
+}
+
+/* Righe selezionabili: tutta la riga è il bersaglio, non la casella.
+   Centrare il pollice su venti pixel mentre si tiene una scala è il modo per
+   selezionare il presidio sbagliato. */
+.voce-selezionabile.scelta { background: var(--blu-chiaro); }
+.voce-casella { flex: none; display: flex; align-items: center; padding-left: 2px; }
+.voce-casella input[type="checkbox"] {
+  width: 22px; height: 22px; accent-color: var(--blu); pointer-events: none;
+}
+.barra-azione { margin: 14px 0 4px; }
+
+/* ------------------------------------------- pacchetto: conferma e previsti --- */
+/* Il codice si detta al telefono: grande, a spaziatura fissa, senza a capo. */
+.codice-pacchetto {
+  font-size: 2rem; font-weight: 800; letter-spacing: .08em; line-height: 1.15;
+  margin: 2px 0 4px; white-space: nowrap;
+}
+.note-pacchetto { white-space: pre-wrap; overflow-wrap: anywhere; margin-top: 4px; }
+.elenco-previsti { list-style: none; margin: 0; padding: 0; }
+.elenco-previsti .prevista {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+  padding: 8px 0; border-bottom: 1px solid var(--bordo);
+}
+.prevista-nome { font-weight: 700; overflow-wrap: anywhere; }
+.titolo-previsti, .titolo-altri { font-size: .9rem; margin: 12px 0 6px; }
+.titolo-previsti { color: var(--blu); }
+.voce-prevista { border-left: 4px solid var(--blu); }
+/* I livelli dell'albero normale, come nella modalità «Sposta» (25/09/2026). Prima
+   del «previsto», che resta blu e vince. */
+.albero-nodo.albero-impianto { background: var(--grigio-200); }
+.albero-nodo.albero-edificio { background: var(--grigio-50); border-left: 4px solid var(--grigio-500); }
+.albero-nodo.albero-locale { background: var(--superficie); border-left: 4px solid var(--grigio-300); }
+.albero-previsto, .albero-nodo.albero-previsto { border-left: 4px solid var(--blu); background: var(--blu-chiaro); }
+
+/* ------------------------------------------------ giro: avanzamento e segni --- */
+.barra-giro {
+  background: var(--superficie); border: 1px solid var(--bordo); border-radius: 10px;
+  padding: 8px 10px; margin-bottom: 8px;
+}
+.barra-giro-testo { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 4px; font-size: .9rem; }
+.barra-giro-mancano { color: var(--testo-tenue); }
+.barra-giro-ambito { flex-basis: 100%; font-size: .78rem; color: var(--testo-tenue); overflow-wrap: anywhere; }
+.avanzamento-grande { height: 10px; border-radius: 5px; margin-top: 6px; }
+
+/* La riga del presidio e il pulsante «fatto / da fare» affiancati: due bersagli
+   separati, mai un pulsante dentro l'altro. */
+.voce-riga { display: flex; gap: 6px; align-items: stretch; margin-bottom: 8px; }
+.voce-riga > .voce { flex: 1; min-width: 0; margin-bottom: 0; }
+.btn-segna {
+  flex: 0 0 64px; flex-direction: column; gap: 2px; padding: 6px 4px;
+  font-size: .75rem; min-height: 46px; border-radius: var(--raggio);
+}
+.btn-segna span:first-child { font-size: 1.15rem; line-height: 1; }
+.segna-fatto { border-color: var(--verde); color: var(--verde); }
+.segna-indietro { color: var(--testo-tenue); }
+.segna-esegui { border-color: var(--blu); color: var(--blu); }
+.btn-segna.segna-esegui span:last-child { line-height: 1.1; text-align: center; }
+/* La colonna di lato (23/09/2026): «da fare / esegui controllo» e, sotto, la
+   mappa del presidio. Il pulsante del giro prende lo spazio che resta, così
+   una riga senza posizione resta com'era prima. */
+.voce-lato { flex: 0 0 64px; display: flex; flex-direction: column; gap: 6px; }
+.voce-lato > .btn-segna { flex: 1 1 auto; }
+.voce-lato > .btn-mappa-presidio { flex: 0 0 auto; min-height: 40px; color: var(--blu); }
+/* Senza posizione (24/09/2026): al posto della mappa, «📍 posizione» in ambra —
+   è una cosa da fare, non una da guardare. Da solo nella colonna (impianti,
+   aree, ubicazioni) il pulsante prende tutta l'altezza della riga. */
+.voce-lato > .btn-posizione-manca { flex: 0 0 auto; min-height: 40px; color: var(--ambra);
+  border-color: var(--ambra); background: var(--ambra-chiaro); }
+.voce-lato > :only-child { flex: 1 1 auto; }
+.voce-sotto-nome { font-weight: 500; color: var(--testo-tenue); font-size: .85em; }
+/* Il dettaglio della tipologia accanto al nome: «Estintore · CO2». Più scuro del
+   contorno, perché è la differenza che conta fra due presidi uguali. */
+.voce-dettaglio { font-weight: 700; }
+
+.blocco-anomalie {
+  border: 1px solid var(--ambra); border-left-width: 4px; background: var(--ambra-chiaro);
+  border-radius: 10px; padding: 10px; margin: 8px 0 12px;
+}
+.blocco-anomalie-titolo { margin: 0 0 6px; font-size: 1rem; }
+.elenco-anomalie { list-style: none; margin: 0; padding: 0; }
+.anomalia-aperta { padding: 8px 0; border-top: 1px solid var(--bordo); }
+.anomalia-aperta:first-child { border-top: 0; padding-top: 0; }
+.anomalia-testo { font-weight: 600; overflow-wrap: anywhere; }
+/* Le due risposte dentro il riquadro giallo (22/09/2026). Su fondo ambra i
+   pulsanti bianchi dell'interruttore si leggono male: qui il bordo è più
+   marcato e la voce scelta resta quella dell'interruttore di sempre, così la
+   risposta in vigore si riconosce senza leggere. */
+/* ⛔ Niente fondo bianco (24/09/2026, dall'operatore: «dietro lo sfondo dei
+   pulsanti c'è il bianco»). Serviva quando i pulsanti erano bianchi su ambra;
+   con i colori di `tono-*` il bianco usciva ai lati, fra i due pulsanti e
+   attorno all'anello di quello scelto. */
+.anomalia-blocca { margin-top: 4px; }
+.anomalia-riapri, .anomalia-gia-risposto { margin-top: 6px; }
+.anomalia-blocca .interruttore-voce { font-size: .82rem; min-height: 44px; }
+.anomalia-azioni { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.anomalia-azioni .btn { flex: 1 1 auto; min-height: 44px; }
+.anomalia-chiusura { margin-top: 8px; }
+.anomalia-chiusura input { width: 100%; }
+
+/* Il conteggio in testa all'elenco cercabile: dice che il riquadro scorre. */
+.scelta-conteggio {
+  position: sticky;
+  top: 0;
+  background: var(--sfondo, #fff);
+  padding: 4px 2px;
+  border-bottom: 1px solid var(--bordo, #e5e7eb);
+  margin-bottom: 4px;
+}
+
+/* Un luogo senza presidi: si vede, si tocca, e non si confonde con uno pieno.
+   (17/09/2026) Prima spariva dall'elenco, e sparendo chiudeva l'unica porta per
+   censire un pezzo in un'ubicazione che il rilievo aveva lasciato vuota. */
+.voce.voce-vuota {
+  /* Più scuro del FONDO della pagina, non uguale: `--grigio-100` è già lo sfondo
+     (`--sfondo`), quindi una voce vuota dipinta così scompariva invece di
+     spegnersi. Qui si usa il 200, che si stacca da entrambi. */
+  background: var(--grigio-200);
+  border-color: var(--grigio-300);
+  box-shadow: none;
+}
+.voce.voce-vuota .voce-titolo { color: var(--testo-tenue); font-weight: 600; }
+.voce.voce-vuota:hover { background: var(--grigio-300); }
+
+/* Un impianto si stacca dal successivo: nell'elenco dei luoghi erano righe
+   uguali una sull'altra e il confine si perdeva (operatore, 17/09/2026). */
+.elenco-impianti > li + li { margin-top: 14px; }
+/* Una barra sola, non due. La `barra-stato` c'è già e porta un significato
+   (verde = finito, ambra = cominciato): aggiungerle accanto un filetto
+   decorativo dello stesso spessore faceva leggere due indicatori dove ce n'è
+   uno. Qui la si ingrossa — il confine fra un impianto e il successivo si vede,
+   e lo si vede DAL COLORE che dice già come sta andando. */
+.elenco-impianti > li > .voce { border-radius: 12px; }
+.elenco-impianti > li > .voce > .barra-stato { width: 7px; border-radius: 4px; }
+.elenco-impianti > li > .voce .voce-titolo {
+  font-size: 1.08rem; font-weight: 800; letter-spacing: .01em;
+}
+
+/* Un impianto si stacca dal successivo anche nella scheda Luoghi (operatore,
+   17/09/2026): erano trenta righe uguali una sull'altra, e per capire dove
+   finisse un impianto e cominciasse il prossimo bisognava leggere i nomi. */
+.albero > .albero-ramo-impianto + .albero-ramo-impianto {
+  margin-top: 10px;
+  border-top: 2px solid var(--bordo);
+  padding-top: 10px;
+}
+.albero > .albero-ramo-impianto > .albero-nodo .albero-nome {
+  font-size: 1.04rem;
+  font-weight: 800;
+}
+
+/* Un pezzo temporaneo sulla postazione: si vede senza leggere (18/09/2026).
+   Ambra e non rosso: non è un guasto, è un in-sospeso — qualcuno deve tornare a
+   dire che fine ha fatto il pezzo nostro. Il rosso lo confonderebbe con «non
+   idoneo», che è un'altra cosa e chiede un'altra azione. */
+.card.card-attenzione {
+  border-left: 5px solid var(--ambra);
+  background: var(--ambra-chiaro);
+}
+.card.card-attenzione h3 { color: var(--testo); }
+
+/* Una voce di verifica che vale solo in certi casi: si vede che non è obbligata
+   (18/09/2026). Grigia e non nascosta — chi ha il pezzo davanti deve poterla
+   leggere e spuntare quando si applica; nasconderla toglierebbe una verifica
+   vera a chi quel caso ce l'ha. */
+.casella-condizionale .casella-testo { color: var(--testo-tenue); }
+.casella-solo-se { font-style: italic; opacity: .8; }
+
+/* --------------------------------------------------------------------------- */
+/* La precisione del GPS che migliora mentre si misura (20/09/2026)             */
+/* --------------------------------------------------------------------------- */
+/*
+   Richiesta dell'operatore: «qualcosa di animato, colorato, che fa capire la
+   precisione che migliora via via che prova». Il movimento È l'informazione —
+   un numero che passa da 20 a 3 va letto e confrontato con quello di prima; un
+   puntino che scivola verso destra si vede senza leggere, con i guanti.
+
+   ⛔ Colore E parola E simbolo, sempre tutti e tre. Controluce, dentro una
+   cabina, verde e ambra si somigliano, e c'è chi non li distingue affatto: la
+   pastiglia scrive «precisa», «accettabile», «approssimativa», «grossolana» e
+   ci mette accanto il numero. La scala da sola non direbbe niente a chi non
+   vede i colori.
+*/
+.gps-riga {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.gps-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: .82rem;
+  font-weight: 700;
+  line-height: 1.25;
+  border: 1px solid transparent;
+  transition: background-color .35s ease, color .35s ease, border-color .35s ease;
+}
+.gps-chip.precisa       { background: var(--verde-chiaro); color: var(--verde); border-color: var(--verde); }
+.gps-chip.accettabile   { background: var(--blu-chiaro);  color: var(--blu);   border-color: var(--blu); }
+.gps-chip.approssimativa{ background: var(--ambra-chiaro); color: var(--ambra); border-color: var(--ambra); }
+.gps-chip.grossolana    { background: var(--rosso-chiaro); color: var(--rosso); border-color: var(--rosso); }
+.gps-chip.sconosciuta,
+.gps-chip.cercando      { background: var(--grigio-100); color: var(--testo-tenue); border-color: var(--bordo); }
+.gps-chip.cercando { animation: gps-respira 1.4s ease-in-out infinite; }
+
+/* La scala: quattro zone, un fantasma (dov'era la prima lettura) e il puntino.
+   Alta 18px e non 6: ci passa sopra il pollice, e una barra sottile su uno
+   schermo al sole non si vede. */
+.gps-scala {
+  position: relative;
+  height: 18px;
+  border-radius: 999px;
+  overflow: hidden;
+  margin: 8px 0 2px;
+  background: var(--grigio-200);
+}
+.gps-zone { position: absolute; inset: 0; display: flex; }
+.gps-zona { height: 100%; opacity: .45; }
+.gps-zona.z-grossolana    { background: var(--rosso); }
+.gps-zona.z-approssimativa{ background: var(--ambra); }
+.gps-zona.z-accettabile   { background: var(--blu); }
+.gps-zona.z-precisa       { background: var(--verde); }
+
+/* Il puntino. `left` in percentuale e `translateX(-50%)`: agli estremi resta
+   dentro la traccia invece di uscirne per metà. */
+.gps-punto {
+  position: absolute;
+  top: 50%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 0;
+  border-radius: 50%;
+  background: var(--superficie);
+  border: 3px solid var(--testo-tenue);
+  transform: translateX(-50%);
+  transition: left .7s cubic-bezier(.22,.7,.28,1), border-color .35s ease;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / 15%);
+}
+.gps-punto.precisa        { border-color: var(--verde); }
+.gps-punto.accettabile    { border-color: var(--blu); }
+.gps-punto.approssimativa { border-color: var(--ambra); }
+.gps-punto.grossolana     { border-color: var(--rosso); }
+
+/* Dov'era la PRIMA lettura: è la risposta a «vale la pena aspettare ancora?».
+   Senza, si vede dove si è, non quanta strada si è fatta. */
+.gps-fantasma {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 3px;
+  margin-left: -1px;
+  border-radius: 2px;
+  background: var(--testo);
+  opacity: .55;
+  transition: left .7s ease, opacity .3s ease;
+}
+
+/* Mentre misura: il puntino pulsa. Fermo e pulsante sono due stati diversi e
+   devono avere due aspetti diversi — è lo stesso motivo per cui sotto la scala
+   c'è scritto «continuo a misurare ancora N s». */
+.gps-scala.gps-misura .gps-punto { animation: gps-pulsa 1.6s ease-in-out infinite; }
+
+/* Prima del primo fix non c'è niente da mostrare: una luce che scorre dice che
+   sta lavorando senza fingere un valore che non c'è. */
+.gps-scala.gps-cerca::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 55%), transparent);
+  animation: gps-scorri 1.3s linear infinite;
+}
+
+@keyframes gps-scorri { from { transform: translateX(-100%); } to { transform: translateX(100%); } }
+@keyframes gps-pulsa {
+  0%, 100% { box-shadow: 0 0 0 1px rgb(0 0 0 / 15%), 0 0 0 0 currentColor; }
+  50%      { box-shadow: 0 0 0 1px rgb(0 0 0 / 15%), 0 0 0 7px rgb(0 0 0 / 0%); }
+}
+@keyframes gps-respira { 0%, 100% { opacity: 1; } 50% { opacity: .55; } }
+
+/* ⚠️ Chi ha chiesto meno movimento lo ha chiesto sul serio: per qualcuno
+   un'animazione che non finisce mai non è un dettaglio ma un sintomo. Restano
+   colore, parola, numero e posizione — cioè tutta l'informazione. */
+@media (prefers-reduced-motion: reduce) {
+  .gps-punto { transition: none; }
+  .gps-fantasma { transition: none; }
+  .gps-chip { transition: none; }
+  .gps-chip.cercando,
+  .gps-scala.gps-misura .gps-punto,
+  .gps-scala.gps-cerca::after { animation: none; }
+}
+
+/* --------------------------------------------------------------------------- */
+/* I numeri della home, a blocchi (20/09/2026)                                  */
+/* --------------------------------------------------------------------------- */
+/*
+   Ogni blocco porta il suo TOTALE in testa e le voci che ci sommano dentro. La
+   riga del titolo esiste per questo: senza, «581» e «281» sono due numeri
+   accanto ad altri numeri, e nessuno può sapere che insieme fanno 868.
+*/
+.blocco-numeri { margin-bottom: 14px; }
+.blocco-titolo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 6px;
+  margin: 0 2px 6px;
+  font-size: .78rem;
+  text-transform: uppercase;
+  letter-spacing: .4px;
+  color: var(--testo-tenue);
+}
+.blocco-titolo b { font-size: .92rem; text-transform: none; letter-spacing: 0; color: var(--testo); }
+.blocco-numeri .griglia-kpi { margin-bottom: 0; }
+.blocco-nota { margin: 6px 2px 0; }
+
+/* L'indirizzo dell'impianto nell'albero dei luoghi (20/09/2026).
+   Va a capo per intero: «STRADA STATALE 541, KM 8,230 (TRAVERSA MOLINO)»
+   troncato a metà non serve a nessuno, e questa riga si legge prima di
+   mettersi in macchina. */
+.albero-indirizzo {
+  margin-top: 2px;
+  color: var(--testo-tenue);
+  overflow-wrap: anywhere;
+}
+
+
+/* «Dove si trova»: un bersaglio solo nella riga del nome (20/09/2026).
+
+   Ci sono state, per mezza giornata, una fascia azzurra a tutta larghezza e una
+   riga tratteggiata su OGNI nodo: tre righe di contorno per un nodo, e l'albero
+   — che è il motivo per cui questa scheda esiste — spariva sotto. Adesso è
+   un'icona alta quanto il pollice in fondo alla riga del nome, e le parole
+   stanno nel foglio che apre. */
+.albero-dove {
+  flex: none;
+  width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--raggio);
+  background: none;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.albero-dove:active { background: var(--grigio-100); }
+
+.dove-dove {
+  padding: 10px 12px;
+  border-radius: var(--raggio);
+  background: var(--grigio-50);
+  overflow-wrap: anywhere;
+}
+
+/* Un KPI che si può aprire (20/09/2026). Si vede che è toccabile: un numero che
+   nasconde un elenco e non lo dice è un numero che nessuno apre. */
+.kpi-apribile {
+  position: relative;
+  /* Centrato come gli altri KPI: il primo tentativo lo allineava a sinistra e
+     in una griglia di schede uguali si vedeva subito che era un'altra cosa. */
+  text-align: center;
+  font: inherit;
+  cursor: pointer;
+  border-color: var(--bordo);
+}
+.kpi-apribile:active { background: var(--grigio-100); }
+.kpi-freccia {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 1.2rem;
+  line-height: 1;
+  color: var(--testo-tenue);
+}
+
+/* Titolo e sottotitolo del foglio (20/09/2026). Il titolo dice DI CHE COSA si
+   sta parlando — il presidio — e il sottotitolo che cosa si sta facendo. Prima
+   il secondo sostituiva il primo, e si registrava un giudizio senza più vedere
+   su quale pezzo. */
+.sheet-titoli { flex: 1; min-width: 0; }
+.sheet-sotto {
+  font-size: .82rem;
+  font-weight: 600;
+  color: var(--testo-tenue);
+  margin-top: 2px;
+  overflow-wrap: anywhere;
+}
+
+/* I blocchi dei numeri, riscritti il 20/09/2026: ognuno con la sua FORMA.
+   Erano tutte schede uguali affiancate, e due numeri che sono un avanzamento si
+   leggevano come due misure indipendenti. */
+.blocco-numeri .grafico-ciambella { margin: 4px 0 0; }
+.blocco-ripartizione {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  align-items: center;
+  margin-top: 8px;
+}
+.blocco-ripartizione .legenda-pallino { margin-right: 5px; }
+.blocco-apri { margin-top: 10px; }
+
+/* Le azioni della scheda del presidio (20/09/2026).
+   Centrate: erano allineate a sinistra e in una colonna di pulsanti larghi
+   uguali il testo fuori asse si legge come un errore di impaginazione. Il
+   gruppo «rare» sta in fondo, staccato da una riga: sono gesti che si fanno
+   una volta ogni tanto, due dei quali dietro la password admin, e in mezzo ai
+   controlli facevano scorrere via quello che serve sempre. */
+.azioni-presidio { display: flex; flex-direction: column; gap: 6px; margin-top: 10px; }
+.azioni-presidio .btn { text-align: center; justify-content: center; }
+.azioni-rare {
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px solid var(--bordo);
+}
+
+/* --------------------------------------------------------------------------- */
+/* La mappa dei luoghi (20/09/2026)                                             */
+/* --------------------------------------------------------------------------- */
+/*
+   Senza sfondo cartografico: le tessere si scaricano, e dentro una cabina non
+   si scarica niente. Restano i punti, le distanze vere e la barra di scala —
+   che qui non è un ornamento ma l'unica cosa che dà un significato a quanto
+   sono distanti due puntini.
+*/
+.mappa-riquadro {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  max-height: 60vh;
+  border: 1px solid var(--bordo);
+  border-radius: var(--raggio);
+  background: var(--grigio-50);
+  overflow: hidden;
+  touch-action: none;           /* il pizzico lo gestiamo noi */
+}
+.mappa-svg { width: 100%; height: 100%; display: block; cursor: grab;
+  /* ⛔ Niente selezione e niente lente di iOS (23/09/2026): tenendo premuto un
+     punto per trascinarlo, il dito sta su un NOME, e iOS apriva la sua lente di
+     selezione del testo — «appare all'inizio e poi va via» — invece di lasciar
+     fare il trascinamento. */
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+/* 🔍 La lente del trascinamento: nell'angolo lontano dal dito, sopra la mappa,
+   e trasparente ai tocchi (il dito deve continuare a parlare con la mappa). */
+.mappa-lente {
+  position: absolute; top: 8px; width: 36%; max-width: 170px; aspect-ratio: 1 / 1;
+  border-radius: 50%; overflow: hidden; pointer-events: none;
+  border: 3px solid #fff; box-shadow: 0 4px 16px rgb(0 0 0 / 35%);
+  background: var(--grigio-50);
+}
+.mappa-lente-destra { right: 8px; }
+.mappa-lente-sinistra { left: 8px; }
+.mappa-lente-svg { width: 100%; height: 100%; display: block; }
+.mappa-lente-mira line { stroke: #fff; stroke-width: 2px; vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 1px #000); }
+.mappa-svg:active { cursor: grabbing; }
+/* ⛔ Da DESKTOP la mappa era un quadrato di ~480 px attaccato a sinistra
+   (23/09/2026, segnalazione dell'operatore: «da desktop la mappa non è
+   ottimizzata, è allineata a sinistra, piccola»). Il motivo è una regola del
+   CSS che non si vede leggendo: con `aspect-ratio`, il `max-height: 60vh` si
+   TRASFERISCE alla larghezza — il riquadro resta quadrato, quindi largo 60vh,
+   dentro una colonna di 900 px. Su uno schermo largo la colonna intera della
+   mappa (ricerca, riquadro, comandi) prende la larghezza del riquadro, più
+   alto, e sta al centro: così comandi e mappa restano allineati. */
+/* ⛔ 24/09/2026, seconda richiesta: «da desktop la mappa dovrebbe sfruttare al
+   massimo lo schermo… entrare tutto in uno schermo verticalmente ma sfruttare
+   lo spazio orizzontale». Il quadrato al centro lasciava due fasce vuote ai
+   lati e i comandi sotto la piega. Adesso: mappa a sinistra, larga quanto
+   resta e alta quanto lo schermo (l'altezza la misura `adatta()` in mappa.js,
+   perché dipende da cosa c'è sopra); comandi, legenda e note in una colonna a
+   destra, che scorre da sola se non ci stanno. Il riquadro NON è più quadrato:
+   la mappa disegna una vista larga (vedi `rapporto()`).
+   Sotto i 720 px nessuna di queste regole vale: il telefono resta com'era. */
+@media (min-width: 720px) {
+  .vista-corpo:has(> .mappa) { max-width: none; }
+  .mappa { display: flex; gap: 14px; align-items: flex-start; }
+  .mappa-colonna-mappa { flex: 1 1 auto; min-width: 0; }
+  .mappa-colonna-comandi { flex: 0 0 320px; min-width: 0; overflow-y: auto; }
+  .mappa-riquadro { aspect-ratio: auto; max-height: none; height: 70vh; }
+  .mappa-colonna-comandi .mappa-sotto { margin-top: 0; }
+}
+/* ✋ «Sposta i punti»: il punto si prende con la mano, e la barra dice che la
+   modalità è accesa — una modalità invisibile è un punto spostato per sbaglio. */
+.mappa-trascinabile { cursor: grab; }
+.mappa-trascinabile:active { cursor: grabbing; }
+.mappa-trascina-barra {
+  margin-top: 8px; padding: 10px 12px; border-radius: 10px;
+  display: flex; gap: 10px; align-items: center; justify-content: space-between;
+  background: var(--ambra-chiaro); border-left: 4px solid var(--ambra);
+}
+
+/* ⛔ OGNI tratto dentro la mappa porta `vector-effect: non-scaling-stroke`
+   (22/09/2026, misurato nel browser vero). La viewBox è in METRI, quindi
+   «stroke-width: 2px» vuol dire due METRI: a 2 km di vista un quarto di
+   pixel (il bordo del cerchio della precisione non si vedeva), a 5 m di vista
+   mezzo schermo (il contorno nero del nome «Sei qui» copriva tutto). Solo la
+   griglia, la nord e la croce lo avevano; i pallini, il cerchio e i nomi no.
+   `scripts/scudo/test_mappa_campo.mjs` controlla ogni regola che dà un
+   `stroke-width` a qualcosa dentro `.mappa`. */
+.mappa-punto text { fill: var(--testo); font-weight: 600; paint-order: stroke;
+  stroke: var(--superficie); stroke-width: .8px; vector-effect: non-scaling-stroke; }
+/* ⛔ Un COLORE PER LIVELLO (22/09/2026, richiesta dell'operatore: «i colori dei
+   pallini dovrebbero essere diversi a seconda se mostriamo impianti o presidi o
+   ubicazioni»). Prima erano tutti bianchi con il bordo colorato: sopra una
+   fotografia dal satellite il bianco vince sul bordo, e i quattro livelli si
+   leggevano uguali. Adesso il pallino è PIENO del colore del suo livello, con
+   il bordo chiaro che lo stacca dal fondo — e la legenda sotto la mappa dice
+   quale colore è quale, perché un colore senza legenda non ha un valore. */
+.mappa-pallino {
+  fill: var(--testo-tenue); stroke: var(--superficie); stroke-width: 1.5px;
+  vector-effect: non-scaling-stroke;
+}
+.mappa-impianto .mappa-pallino { fill: var(--rosso); stroke-width: 2px; }
+.mappa-edificio .mappa-pallino { fill: var(--blu); }
+.mappa-locale   .mappa-pallino { fill: #7c5cbf; }
+/* Il presidio è la sua EMOJI DI CATEGORIA (23/09/2026); il pallino sotto è un
+   ALONE chiaro che la stacca dal satellite. */
+.mappa-presidio .mappa-pallino { fill: #fff; fill-opacity: .9; stroke: var(--testo-tenue); }
+.mappa-emoji { pointer-events: none; }
+/* Un presidio con qualcosa da controllare: ambra, come le anomalie e come la
+   barra del giro. Il colore dice il LAVORO, non la gravità. */
+/* «Da controllare» è un ANELLO ambra spesso, non un disco pieno: sul disco
+   pieno i colori dell'emoji si perdevano (visto nel browser, 23/09/2026). */
+.mappa-presidio .mappa-pallino.mappa-da-fare {
+  fill: #fff; fill-opacity: 1; stroke: var(--ambra); stroke-width: 3.5px;
+}
+/* «Sei qui»: il puntino blu con il bordo bianco spesso, la forma che chiunque
+   riconosce da un navigatore. Il bordo bianco lo stacca anche dal pallino rosso
+   di un impianto, sopra cui sta quasi sempre. */
+.mappa-io .mappa-pallino { fill: var(--blu); stroke: #fff; stroke-width: 3px;
+  vector-effect: non-scaling-stroke; }
+/* La linea guida fra un nome allontanato e il suo punto. Sottile, e con il
+   contorno scuro sotto: sopra il satellite una linea chiara da sola sparisce. */
+.mappa-guida {
+  stroke: var(--testo); stroke-width: 1.2px; stroke-opacity: .8;
+  vector-effect: non-scaling-stroke;
+}
+.mappa-con-sfondo .mappa-guida { stroke: #fff; stroke-opacity: .95;
+  filter: drop-shadow(0 0 1px rgba(0, 0, 0, .9)); }
+
+.mappa-legenda {
+  display: flex; flex-wrap: wrap; gap: 4px 12px;
+  margin-top: 6px; font-size: .74rem; color: var(--testo-tenue);
+}
+.mappa-legenda-voce { display: inline-flex; align-items: center; gap: 4px; }
+.mappa-legenda-segno {
+  width: 11px; height: 11px; border-radius: 50%; display: inline-block;
+  border: 1.5px solid var(--superficie);
+}
+.legenda-impianto { background: var(--rosso); }
+.legenda-edificio { background: var(--blu); }
+.legenda-locale   { background: #7c5cbf; }
+.legenda-presidio { background: #fff; border-color: var(--testo-tenue); }
+.legenda-da-fare  { background: #fff; border: 3px solid var(--ambra); }
+.legenda-ricavata { background: transparent; border: 1.5px dashed var(--testo-tenue); }
+/* Il RAGGIO della precisione attorno a «sei qui» (22/09/2026, richiesta
+ * dell'operatore: «un raggio semitrasparente del cerchio deve mostrare la
+ * precisione dove c'è il pallino»). Il puntino da solo è un punto esatto al
+ * centimetro, che non lo è mai: il cerchio è l'unica cosa che dice di quanto
+ * ci si può sbagliare.
+ *
+ * ⚠️ NON si usa `opacity`: si moltiplica anche per `stroke-opacity`, e il
+ * bordo finiva allo 0,04 — sopra una fotografia dal satellite, invisibile. Il
+ * velo sta sul solo riempimento; il bordo resta pieno e TRATTEGGIATO, perché
+ * è un'incertezza e non un confine.
+ *
+ * `pointer-events: none`: a ±40 m il cerchio copre mezza mappa, e un velo che
+ * intercetta i tocchi impedirebbe di aprire i presidi che ci stanno sotto. */
+.mappa-accuratezza {
+  fill: var(--blu);
+  fill-opacity: .14;
+  stroke: var(--blu);
+  stroke-width: 2px;
+  stroke-dasharray: 6 4;
+  vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+.mappa-punto[tabindex] { cursor: pointer; }
+/* ⛔ Niente contorno del browser sui punti (23/09/2026, dallo schermo
+   dell'operatore: toccando un'etichetta compariva un ovale blu e bianco enorme).
+   Il punto è un gruppo SVG con `tabindex`, e il contorno di focus predefinito si
+   disegna nelle unità della mappa, cioè in METRI: a 10 m di vista tre «pixel»
+   sono tre metri. È lo stesso difetto dei bordi del 22/09, in un posto che quel
+   censimento non guardava (il contorno non è uno `stroke-width`).
+   Per chi usa la TASTIERA il focus resta visibile: il pallino prende un bordo
+   blu, in pixel. */
+.mappa-punto:focus { outline: none; }
+.mappa-punto:focus-visible .mappa-pallino { stroke: var(--blu); stroke-width: 4px; }
+
+/* Il pulsante «dove sono» MENTRE misura (22/09/2026: «ancora non vedo quando
+ * sta prendendo la posizione e quando no»). Tre segnali, perché uno solo lascia
+ * fuori qualcuno: la parola cambia («misuro… ±17 m»), il colore cambia, e
+ * qualcosa si muove — un tasto fermo si legge come un tasto finito.
+ *
+ * ⚠️ `prefers-reduced-motion`: per chi ha chiesto di non far muovere niente
+ * il battito si spegne, e restano parola e colore. Un segnale affidato alla
+ * sola animazione sparisce proprio per chi l'ha disattivata. */
+.mappa-gps-acceso {
+  background: var(--blu);
+  color: #fff;
+  border-color: var(--blu);
+  animation: mappa-battito 1.2s ease-in-out infinite;
+}
+@keyframes mappa-battito {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .55; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mappa-gps-acceso { animation: none; }
+}
+
+.mappa-sotto { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-top: 8px; }
+.mappa-scala { display: flex; align-items: center; gap: 6px; flex: 1 1 120px; }
+.mappa-scala-barra {
+  display: inline-block;
+  height: 8px;
+  min-width: 18px;
+  max-width: 60%;
+  border: 2px solid var(--testo);
+  border-top: 0;
+}
+/* ⛔ Allineati (24/09/2026): una riga per muovere la mappa — ＋ e － stretti,
+   «tutto» e «dove sono» a prendersi il resto — e una griglia a DUE colonne
+   uguali per le caselle; le fonti delle immagini una per riga, a tutta
+   larghezza, testo a sinistra. Prima andavano a capo dove capitava. */
+.mappa-comandi { flex: 1 1 100%; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.mappa-comandi .btn { min-height: 40px; min-width: 44px; }
+.mappa-comandi-vista { display: grid; grid-template-columns: 48px 48px minmax(0, 1fr) minmax(0, 1.4fr); gap: 6px; }
+.mappa-comandi-caselle { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+/* Stessa altezza su tutta la riga: le caselle portano un margine loro (sono
+   `label` di un modulo) e il pulsante no — misurato: 54 contro 40 px. */
+.mappa-comandi-caselle > * { width: 100%; min-width: 0; justify-content: flex-start; margin: 0; min-height: 44px; box-sizing: border-box; }
+.mappa-comandi-caselle > [hidden] { display: none; }
+.mappa-fonti { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; margin-top: 10px; }
+.mappa-fonti .btn { width: 100%; justify-content: flex-start; text-align: left; min-height: 40px; }
+
+/* Le caselle di che cosa mostrare (22/09/2026): si spuntano, non si premono.
+   Bersaglio alto quanto i pulsanti — con i guanti una casella da 20 px non si
+   centra — e tutta l'etichetta è il bersaglio, perché è un `label`. */
+.mappa-casella {
+  display: inline-flex; align-items: center; gap: 6px;
+  min-height: 40px; padding: 0 10px;
+  border: 1px solid var(--bordo); border-radius: 8px;
+  background: var(--superficie); font-size: .82rem; cursor: pointer;
+  user-select: none;
+}
+.mappa-casella input { width: 18px; height: 18px; margin: 0; }
+.mappa-casella:has(input:checked) { border-color: var(--rosso); background: var(--rosso-chiaro); }
+.mappa-nota { margin-top: 8px; }
+
+/* Un punto RICAVATO è vuoto, uno rilevato è pieno: la differenza si vede senza
+   leggere, ed è la stessa in legenda. Tratteggio e non solo colore — contro
+   luce due tinte vicine non si distinguono, e c'è chi non le distingue mai. */
+.mappa-ricavata {
+  fill: var(--sfondo, #fff);
+  stroke-dasharray: 2 2;
+}
+
+/* La griglia è un RIGHELLO, non una decorazione: il suo passo è quello della
+   barra di scala. Sottile e chiara — deve dare la misura senza competere con
+   i punti, che sono l'unica cosa che la mappa afferma davvero. */
+.mappa-griglia {
+  stroke: var(--bordo, #d8dbe0);
+  stroke-width: .35;
+  vector-effect: non-scaling-stroke;
+}
+.mappa-nord {
+  stroke: var(--testo-debole, #6b7280);
+  stroke-width: 1.4;
+  vector-effect: non-scaling-stroke;
+}
+.mappa-nord-testo { fill: var(--testo-debole, #6b7280); font-weight: 700; }
+
+/* Sopra le immagini dal satellite cambia solo la LEGGIBILITÀ, non il disegno.
+   Un nome nero su un tetto scuro non si legge, e una griglia grigio chiaro
+   sparisce: il contorno bianco e la griglia schiarita servono a quello. */
+.mappa-tessera { image-rendering: auto; }
+.mappa-con-sfondo .mappa-griglia { stroke: #fff; stroke-opacity: .30; }
+.mappa-con-sfondo .mappa-punto text {
+  fill: #fff;
+  stroke: rgba(0, 0, 0, .75);
+  stroke-width: 2.2px;
+  paint-order: stroke;
+  vector-effect: non-scaling-stroke;
+}
+.mappa-con-sfondo .mappa-nord { stroke: #fff; }
+.mappa-con-sfondo .mappa-nord-testo {
+  fill: #fff; stroke: rgba(0, 0, 0, .75); stroke-width: 2px; paint-order: stroke;
+  vector-effect: non-scaling-stroke;
+}
+
+/* La croce del posizionamento a mano. Braccia lunghe e presa larga: una
+   crocetta piccola si copre col pollice proprio mentre la si sposta, che è
+   l'unico momento in cui serve vederla. */
+.mappa-mira line {
+  stroke: var(--rosso); stroke-width: 2px; vector-effect: non-scaling-stroke;
+  stroke-dasharray: 6 4;
+}
+.mappa-mira-centro { fill: none; stroke: var(--rosso); stroke-width: 2.5px;
+  vector-effect: non-scaling-stroke; }
+.mappa-mira-presa { fill: transparent; cursor: grab; }
+.mappa-con-sfondo .mappa-mira line,
+.mappa-con-sfondo .mappa-mira-centro { stroke: #fff; }
+.mappa-mira-barra {
+  margin-top: 8px; padding: 10px 12px; border-radius: 10px;
+  background: var(--ambra-chiaro); border-left: 4px solid var(--ambra);
+}
+
+/* Le voci di un piano, in sola lettura. Numerate perché è l'ordine in cui si
+   eseguono, e il numero serve a dirsi a voce «sono alla quattro». */
+.elenco-voci { margin: 6px 0 0; padding-left: 22px; }
+.elenco-voci li { margin-bottom: 6px; line-height: 1.35; }
+.elenco-semplice { margin: 6px 0 0; padding-left: 18px; }
+.elenco-semplice li { margin-bottom: 4px; }
+
+/* La croce che svuota la ricerca. Stretta e alta quanto il campo: è un comando
+   di servizio, non deve competere con «Filtri». */
+.cerca-svuota { flex: 0 0 auto; min-width: 44px; }
+
+/* Il riepilogo del pezzo, in cima alla sua scheda: è la prima cosa che si
+   confronta con l'etichetta, quindi compatto e senza fronzoli. */
+.riepilogo-presidio { margin-bottom: 12px; }
+.riepilogo-presidio h3 { margin: 10px 0 2px; font-size: .82rem; color: var(--testo-tenue); }
+.riepilogo-presidio h3:first-child { margin-top: 0; }
+.riepilogo-presidio .dati { margin: 0; }
+
+/* Il tracciamento in fondo, chiuso: si apre solo quando qualcuno se lo chiede. */
+.tracciamento { margin-top: 16px; }
+.tracciamento summary {
+  cursor: pointer; font-weight: 600; font-size: .86rem;
+  color: var(--testo-tenue); padding: 6px 0;
+}
+.tracciamento .dati { margin-top: 4px; font-size: .84rem; }
+
+/* ------------------------------------------------ spostare nell'albero -- */
+/* La modalità «sposta» (22/09/2026, richiesta dell'operatore: «spostare aree,
+   ubicazioni e presidi come se fossero cartelle, semplice e intuitivo, anche
+   da mobile, con animazioni intuitive»).
+
+   Tre stati di una riga e tre segnali per ciascuno — colore, bordo e
+   movimento — perché uno solo lascia fuori qualcuno: controluce il verde e il
+   rosso si somigliano, e c'è chi non li distingue affatto. Le parole le porta
+   il fantasma che segue il dito («⤵ in «Sala»» / «✕ …»). */
+.azioni-luoghi { display: flex; gap: 8px; margin-bottom: 10px; }
+.azioni-luoghi .btn { flex: 1 1 0; }
+
+.sposta-testata {
+  background: var(--blu-chiaro); border: 1px solid var(--blu); border-radius: 12px;
+  padding: 10px 12px; margin-bottom: 10px;
+}
+.sposta-titolo { font-weight: 700; }
+.sposta-comandi {
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+  justify-content: space-between; margin-top: 8px;
+}
+.sposta-casella { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; }
+
+.sposta-albero { display: flex; flex-direction: column; border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--bordo); }
+.sposta-riga {
+  display: flex; align-items: center; gap: 2px; min-height: 48px;
+  padding: 2px 6px 2px calc(4px + var(--livello, 0) * 14px);
+  border-bottom: 1px solid var(--bordo); background: var(--superficie);
+  transition: background-color .2s, transform .15s, box-shadow .15s, opacity .15s;
+}
+.sposta-impianto { background: var(--sfondo); }
+.sposta-impianto .sposta-testo { font-weight: 700; }
+/* Ogni LIVELLO si riconosce senza leggere (25/09/2026, dall'operatore: «è
+   importante che su ogni livello lo sfondo o lo stile cambi»): impianto la fascia
+   più scura, area grigio chiaro con la barra scura, ubicazione bianca con la barra
+   chiara, presidio più piccolo e tenue. Grigi e non colori: il blu è della scelta,
+   il verde e il rosso della destinazione, l'ambra delle cose che mancano — e
+   stanno DOPO, in questo file, così vincono quando ci sono. */
+.sposta-impianto { background: var(--grigio-200); border-top: 2px solid var(--bordo); }
+.sposta-edificio { background: var(--grigio-50); box-shadow: inset 4px 0 0 var(--grigio-500); }
+.sposta-edificio .sposta-testo { font-weight: 600; }
+.sposta-locale { background: var(--superficie); box-shadow: inset 4px 0 0 var(--grigio-300); }
+.sposta-presidio { background: var(--superficie); font-size: .88rem; color: var(--testo-tenue); }
+.sposta-freccia {
+  flex: 0 0 auto; min-width: 30px; min-height: 44px; border: 0; background: transparent;
+  font-size: 1rem; color: var(--testo-tenue); cursor: pointer; padding: 0;
+}
+.sposta-foglia { display: inline-flex; align-items: center; justify-content: center; cursor: default; }
+.sposta-spunta { width: 22px; height: 22px; flex: 0 0 auto; margin: 0 4px; }
+/* ⛔ `touch-action: none` SOLO sulla maniglia: è ciò che permette di
+   trascinare con il dito senza che il browser scorra la pagina. Su tutta la
+   riga renderebbe impossibile scorrere un albero di seicento luoghi. */
+.sposta-maniglia {
+  flex: 0 0 auto; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none;
+  min-width: 34px; min-height: 44px; display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1.3rem; color: var(--testo-tenue); border-radius: 8px;
+}
+.sposta-maniglia:active { cursor: grabbing; background: var(--blu-chiaro); color: var(--blu); }
+.sposta-ico { flex: 0 0 auto; }
+.sposta-nome {
+  flex: 1 1 auto; min-width: 0; text-align: left; border: 0; background: transparent;
+  min-height: 44px; padding: 4px 6px; font: inherit; color: inherit; cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.sposta-qui { flex: 0 0 auto; white-space: nowrap; }
+.sposta-qui.btn-spento { opacity: .5; }
+
+.sposta-scelto { background: var(--blu-chiaro); box-shadow: inset 4px 0 0 var(--blu); }
+/* Quello che si sta trascinando resta al suo posto, SBIADITO: si vede da dove
+   parte, e non si confonde con dove sta andando. */
+.sposta-sollevato { opacity: .45; transform: scale(.98); }
+.sposta-bersaglio-si {
+  background: var(--verde-chiaro); box-shadow: inset 0 0 0 2px var(--verde);
+  animation: sposta-pulsa .9s ease-in-out infinite;
+}
+.sposta-bersaglio-no { background: var(--rosso-chiaro); box-shadow: inset 0 0 0 2px var(--rosso); }
+.sposta-scuoti { animation: sposta-scuoti .35s; }
+.sposta-arrivato { animation: sposta-arriva 1.8s ease-out; }
+
+.sposta-fantasma {
+  position: fixed; left: 0; top: 0; z-index: 70; pointer-events: none;
+  max-width: 250px; padding: 8px 10px; border-radius: 10px;
+  background: var(--testo); color: #fff; box-shadow: 0 10px 28px rgb(0 0 0 / 35%);
+  will-change: transform; font-weight: 600;
+}
+.sposta-fantasma-si { background: var(--verde); }
+.sposta-fantasma-no { background: var(--rosso); }
+.sposta-fantasma-esito { color: rgb(255 255 255 / 92%); font-weight: 500; }
+
+/* La barra della scelta resta in vista in fondo a ciò che scorre (qui scorre
+   `.vista`, non il documento): è lei che dice che cosa si sta per spostare. */
+.sposta-scelta {
+  position: sticky; bottom: 0; z-index: 5;
+  display: flex; flex-wrap: wrap; gap: 8px; align-items: center; justify-content: space-between;
+  padding: 10px 12px; margin-top: 10px; border-radius: 12px;
+  background: var(--testo); color: #fff; box-shadow: 0 -4px 16px rgb(0 0 0 / 18%);
+  animation: sposta-sale .2s ease-out;
+}
+.sposta-scelta .btn { background: #fff; color: var(--testo); }
+.sposta-scelta-testo { flex: 1 1 180px; font-size: .9rem; }
+.sposta-in-corso { user-select: none; -webkit-user-select: none; }
+.sposta-conferma-riga { margin: 0 0 8px; }
+
+@keyframes sposta-pulsa { 50% { box-shadow: inset 0 0 0 4px var(--verde); } }
+@keyframes sposta-scuoti {
+  0%, 100% { transform: translateX(0); } 25% { transform: translateX(-7px); } 75% { transform: translateX(7px); }
+}
+@keyframes sposta-arriva {
+  0% { background: var(--verde-chiaro); box-shadow: inset 5px 0 0 var(--verde); }
+  100% { box-shadow: inset 0 0 0 transparent; }
+}
+@keyframes sposta-sale { from { transform: translateY(12px); opacity: 0; } }
+/* Chi ha chiesto che niente si muova: restano colori, bordi e parole, cioè
+   tutta l'informazione. */
+@media (prefers-reduced-motion: reduce) {
+  .sposta-bersaglio-si, .sposta-scuoti, .sposta-arrivato, .sposta-scelta { animation: none; }
+  .sposta-riga { transition: none; }
+}
+
+/* ---------------------------------------------- scheda di un punto -- */
+/* Etichetta SOPRA il valore (23/09/2026): «CategoriaTarga acustico-visiva»,
+   due parole attaccate, era come la scheda si leggeva sul telefono. */
+.scheda-voce { margin: 0 0 10px; }
+.scheda-voce-etichetta { font-size: .78rem; color: var(--testo-tenue); }
+.scheda-voce-valore { font-size: 1rem; overflow-wrap: anywhere; }
+
+/* UNA croce sola: la nostra (`.cerca-svuota`), che c'è anche su iOS in una PWA
+   installata. Quella nativa di `type=search` compariva IN PIÙ su Android e al
+   computer — due croci per la stessa cosa (visto nel browser, 23/09/2026). */
+.cerca-riga input[type=search]::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; display: none; }
+
+/* La barra di ricerca sopra la mappa: la stessa riga dei presidi. */
+.mappa-cerca { margin: 0 0 8px; }
+.mappa-nota-ricerca { margin: -2px 2px 8px; }
+
+/* Rinomina, elimina e crea nella modalità sposta: icone, perché lo spazio della
+   riga su un telefono è poco; il nome per esteso sta nell'aria-label e nel title. */
+.sposta-comandi-luogo { display: inline-flex; gap: 4px; flex: 0 0 auto; }
+.sposta-icona { min-width: 40px; min-height: 40px; padding: 0 6px; }
+.sposta-icona.btn-spento { opacity: .45; }
+/* Il luogo senza posizione: l'icona 📍 in ambra, come «📍 posizione» nei Presidi (25/09/2026). */
+.sposta-icona-manca { background: var(--ambra-chiaro); border-color: var(--ambra); }
+/* ⛔ In FONDO alla sezione, perché le regole di base di nome, icone e «Sposta
+   qui» stanno sopra e altrimenti vincerebbero (misurato: la prima stesura era
+   scritta prima e non si applicava). La riga VA A CAPO (25/09/2026, dal telefono dell'operatore: con la quarta
+   icona — la posizione — il nome restava di tre lettere e scendeva una sillaba
+   per riga: «Box / di / stal / lo»). Sotto i 560 px le icone hanno una riga loro,
+   a destra, e il nome si prende la larghezza; sopra stanno accanto, e se non ci
+   stanno scendono lo stesso. Come l'albero normale, che sotto i 560 px lo fa già. */
+.sposta-riga { flex-wrap: wrap; row-gap: 0; }
+/* `1 1 0` e non una larghezza minima: il nome resta nella SUA colonna e va a capo
+   fra le parole. Con una base di 8rem un nome lungo scendeva lui stesso a capo,
+   all'estrema sinistra, sotto freccia e casella (visto nel browser a 390 px). */
+.sposta-nome { flex: 1 1 0; min-width: 0; overflow-wrap: break-word; }
+.sposta-comandi-luogo { margin-left: auto; flex-wrap: wrap; justify-content: flex-end; }
+/* «Sposta qui» sta DENTRO la riga dei comandi, al primo posto (26/09/2026): con una
+   scelta in corso compare lì, e nessuna riga cambia altezza. */
+.sposta-comandi-luogo .sposta-qui { min-height: 40px; }
+@media (max-width: 560px) {
+  .sposta-comandi-luogo { flex: 1 0 100%; padding-bottom: 4px; }
+}
+.albero-nodo .btn-posizione-manca { color: var(--ambra); border-color: var(--ambra); background: var(--ambra-chiaro); }
+.albero-nodo .btn-mappa-presidio { color: var(--blu); }
+
+
+/* ------------------------------------------------------------------------ */
+/* La mappa sopra l'elenco dei presidi (23/09/2026)                          */
+/* ------------------------------------------------------------------------ */
+/* Sopra la barra delle schede (40) e quella dell'aggiornamento (45), SOTTO i
+   fogli (50/60) e i messaggi (80): toccando un punto si apre la sua scheda, e
+   «Spostare qui?» è un messaggio — tutti e due devono stare sopra la mappa. */
+.livello-mappa {
+  position: fixed; inset: 0; z-index: 48;
+  display: flex; flex-direction: column;
+  background: var(--sfondo, #f6f7f9);
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.livello-mappa-testa {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px; border-bottom: 1px solid var(--bordo); background: var(--superficie);
+}
+.livello-mappa-titoli { flex: 1; min-width: 0; }
+.livello-mappa-titolo { font-weight: 700; overflow-wrap: anywhere; }
+.livello-mappa-sotto { overflow-wrap: anywhere; }
+.livello-mappa-chiudi { flex: 0 0 auto; min-height: 44px; }
+.livello-mappa-corpo {
+  flex: 1 1 auto; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  padding: 10px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+}
+/* L'anello del presidio aperto dall'elenco: si vede sopra il satellite e sopra
+   le emoji dei vicini. Tratto in pixel, come ogni tratto della mappa. */
+.mappa-anello {
+  fill: none; stroke: #ff3d00; stroke-width: 3px; vector-effect: non-scaling-stroke;
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .mappa-anello { animation: mappa-battito 1.2s ease-in-out infinite; }
+}
+
+/* Accanto alla mappa: chi NON c'è sulla mappa (24/09/2026). Righe con il nome
+   a sinistra e il pulsante a destra; su uno schermo stretto il pulsante va a
+   capo sotto il nome invece di schiacciarlo. */
+.senza-posizione { margin-top: 10px; }
+.senza-titolo { font-weight: 700; margin-bottom: 8px; }
+/* «Tutti» su una riga, poi i quattro tipi due per riga: cinque voci in fila
+   andavano a capo lasciandone una sola sotto. */
+.senza-tipi { margin-top: 8px; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.senza-tipi > :first-child { grid-column: 1 / -1; }
+.senza-righe { margin-top: 6px; }
+.senza-riga {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 6px 10px; padding: 8px 0; border-top: 1px solid var(--bordo);
+}
+.senza-nomi { flex: 1 1 160px; min-width: 0; }
+.senza-nome { font-weight: 600; overflow-wrap: anywhere; }
+.senza-riga .btn { flex: 0 0 auto; }
+
+/* I dati che mancano, dentro la riga del controllo (24/09/2026): un riquadro
+   azzurro — è una domanda, non un difetto — sopra i pulsanti che sblocca. */
+.dati-mancanti-riga {
+  border: 1px solid var(--blu); border-radius: 10px; background: var(--superficie);
+  padding: 10px; margin: 4px 0 8px;
+}
+.dati-mancanti-titolo { font-weight: 700; margin-bottom: 4px; }
+.dati-mancanti-riga label { display: block; margin-top: 8px; }
+
+/* ------------------------------------------------------------------------ */
+/* Risposte a COLORI (24/09/2026, richiesta dell'operatore)                  */
+/* ------------------------------------------------------------------------ */
+/* Verde / giallo / rosso dicono che cosa vuol dire la risposta — «nessun pezzo
+   guasto», «alcuni», «tutti»; «risolta», «c'è ma si usa», «impedisce l'uso» —
+   anche PRIMA di toccarla: il colore c'è sempre, tenue. La scelta fatta si
+   RIEMPIE, prende un anello e un segno ✓, e le altre del gruppo si attenuano:
+   si vede qual è senza confrontare due sfumature. Il segno c'è perché il colore
+   da solo non basta — contro luce, o a chi non distingue rosso e verde. */
+.tono-ok { --tono: var(--verde); --tono-chiaro: var(--verde-chiaro); }
+.tono-attenzione { --tono: var(--ambra); --tono-chiaro: var(--ambra-chiaro); }
+.tono-ko { --tono: var(--rosso); --tono-chiaro: var(--rosso-chiaro); }
+.scelta[class*="tono-"], .interruttore-voce[class*="tono-"] {
+  border: 2px solid var(--tono); color: var(--tono); background: var(--tono-chiaro);
+  font-weight: 700;
+}
+.scelta.scelta-attiva[class*="tono-"], .interruttore-voce.attiva[class*="tono-"] {
+  background: var(--tono); border-color: var(--tono); color: #fff;
+  box-shadow: 0 0 0 3px var(--tono-chiaro), 0 2px 6px rgb(0 0 0 / 18%);
+}
+.scelta.scelta-attiva[class*="tono-"]::before { content: '✓ '; }
+.scelte:has(.scelta-attiva) .scelta[class*="tono-"]:not(.scelta-attiva),
+.interruttore:has(.attiva) .interruttore-voce[class*="tono-"]:not(.attiva) { opacity: .55; }
+
+/* ------------------------------------------------------------------------ */
+/* Il testo di un'anomalia: la nota dell'operatore, poi l'elenco (24/09/2026) */
+/* ------------------------------------------------------------------------ */
+.anomalia-nota { font-weight: 700; overflow-wrap: anywhere; }
+.anomalia-nota-vuota { font-weight: 500; font-style: italic; color: var(--testo-tenue); }
+.anomalia-verifiche { margin-top: 4px; font-weight: 400; }
+.anomalia-verifiche summary { font-size: .82rem; color: var(--testo-tenue); font-weight: 600; padding: 4px 0; }
+.anomalia-verifiche ul { margin: 4px 0 0; padding-left: 18px; font-size: .82rem; color: var(--testo-tenue); }
+.anomalia-verifiche li { margin-bottom: 3px; }
+.anomalia-conta { color: var(--rosso); font-size: .8rem; }
+
+/* La verifica a cui un'anomalia si riferisce (25/09/2026): facoltativa, una. */
+.anomalia-collegata { margin-top: 4px; font-size: .85rem; color: var(--testo-tenue); overflow-wrap: anywhere; }
+.verifica-collegata { margin: 4px 0 12px; }
+.verifica-collegata summary { font-size: .9rem; font-weight: 600; padding: 8px 0; cursor: pointer; }
+.verifica-collegata .scelte { flex-direction: column; align-items: stretch; }
+.verifica-collegata .scelta { text-align: left; white-space: normal; border-radius: 10px; }
+
+/* Lo spazio occupato sul dispositivo (25/09/2026), nella scheda Dati. */
+.blocco-spazio { margin-top: 12px; }
+.blocco-spazio h3 { margin: 0 0 6px; font-size: 1rem; }
+
+/* Chi firma il verbale, prima di scaricarlo (25/09/2026). Nome largo, matricola
+   stretta, «Togli» a destra; sul telefono vanno a capo invece di schiacciarsi. */
+.firmatari-sezione { margin-top: 10px; }
+.firmatario { margin: 6px 0; }
+.firmatario-riga { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.firmatario-nome { flex: 1 1 12rem; min-width: 0; }
+.firmatario-matricola { flex: 0 1 8rem; min-width: 0; }
+.firmatario-tolto input { text-decoration: line-through; opacity: .6; }
+
+/* Le note dell'area e dell'ubicazione in cui si è, nei Presidi (25/09/2026). */
+.note-luogo { margin: 6px 0 8px; padding: 8px 10px; border-radius: 10px;
+  background: var(--superficie); border: 1px solid var(--bordo); }
+.note-luogo-voce + .note-luogo-voce { margin-top: 6px; }
+.note-luogo-titolo { font-size: .8rem; font-weight: 600; color: var(--testo-2, #555); }
+.note-luogo-testo { white-space: pre-wrap; font-size: .9rem; }
