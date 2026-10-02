@@ -1,0 +1,77 @@
+{
+  "name": "Scudo Campo — presidi antincendio",
+  "short_name": "Scudo Campo",
+  "description": "Rilievo in campo dei presidi antincendio: ricerca, schede, controlli e anomalie. Funziona offline.",
+  "lang": "it",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f3f4f6",
+  "theme_color": "#b91c1c",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": [
+    "business",
+    "utilities",
+    "productivity"
+  ],
+  "share_target": {
+    "action": "./carica",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "titolo",
+      "text": "testo",
+      "files": [
+        {
+          "name": "pacchetto",
+          "accept": [
+            "application/zip",
+            "application/x-zip-compressed",
+            ".zip"
+          ]
+        }
+      ]
+    }
+  },
+  "file_handlers": [
+    {
+      "action": "./carica",
+      "accept": {
+        "application/zip": [
+          ".zip"
+        ]
+      },
+      "launch_type": "single-client"
+    }
+  ],
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  }
+}
