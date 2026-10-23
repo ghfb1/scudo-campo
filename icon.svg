@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Scudo Campo">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#dc2626"/>
+      <stop offset="1" stop-color="#7f1d1d"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#g)"/>
+  <path d="M256 88 L392 140 v128 c0 84-58 136-136 168-78-32-136-84-136-168V140z"
+        fill="none" stroke="#fff" stroke-width="26" stroke-linejoin="round"/>
+  <path d="M256 176c26 34 20 50 8 62-14 14-30 6-30-16-22 20-30 42-30 62 0 34 24 58 52 58s52-24 52-58c0-40-24-78-52-108z"
+        fill="#fff"/>
+</svg>
